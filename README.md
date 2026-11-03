@@ -6,7 +6,7 @@ A focused workspace for finding social posts with buying intent, preparing outre
 
 - Scheduled LinkedIn and X discovery, with optional Reddit discovery through Apify.
 - One shared Claude screening contract for automatic and manual leads. Closed requests, vendor ads and completed-work recaps are excluded by the prompt; generated drafts must not invent credentials or past work.
-- Inbox with intent ranking, platform/type/status filters, search, similar-post grouping and an option to manage every post separately.
+- Split-view inbox: a ranked list beside the full lead, with a 2-hour reply ruler, platform/type/priority filters, search, similar-post grouping (optional) and keyboard shortcuts (`j`/`k` move, `c` copy reply, `e` mark replied, `/` search). On phones the lead opens full screen.
 - Action queues for hot leads, overdue replies and follow-ups; notes and editable outreach drafts.
 - CSV export of the current filtered view, including protection against spreadsheet formula injection.
 - Results reporting and per-source worker health. A synced inbox is not presented as proof of a successful scan.
