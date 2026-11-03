@@ -7,6 +7,7 @@ import json
 import os
 import sys
 import time
+from datetime import datetime
 from pathlib import Path
 
 import anthropic
@@ -84,7 +85,13 @@ def classify(claude, author, text):
         return {"match": True, "kind": "other", "reason": "classifier output unparseable, check manually", "reply": ""}
 
 
-def notify(url, author, verdict):
+def notify(url, author, verdict, post_text=""):
+    # leads.jsonl feeds the web inbox (web/); a retried post may append twice, the web app dedupes by post id
+    row = {"url": url, "author": author, "kind": verdict["kind"], "why": verdict["reason"], "reply": verdict.get("reply") or "",
+           "excerpt": " ".join(post_text.split())[:360], "source": "hourly",
+           "foundAt": datetime.now().astimezone().isoformat(timespec="seconds")}
+    with open(ROOT / "leads.jsonl", "a") as f:
+        f.write(json.dumps(row, ensure_ascii=False) + "\n")
     text = (f":rotating_light: *{verdict['kind']}* lead from *{author}* (reply within 2h)\n{url}\n"
             f"_{verdict['reason']}_\n> {verdict.get('reply') or ''}")
     if ENV.get("SHEET_WEBHOOK_URL"):  # Apps Script in the Sheet appends one row (sheet_webhook.gs)
@@ -112,7 +119,7 @@ def main():
             try:
                 verdict = classify(claude, author, text)
                 if verdict.get("match"):
-                    notify(url, author, verdict)
+                    notify(url, author, verdict, text)
                     leads += 1
             except Exception as e:  # one bad post (Claude/Slack/Sheet down) must not stop the rest
                 failed += 1
@@ -143,7 +150,7 @@ if __name__ == "__main__":
         ENV.setdefault("ANTHROPIC_API_KEY", "test")
         fetch_posts = lambda limit: [{"linkedinUrl": u, "content": "x"} for u in ("a", "b")]
         classify = lambda claude, author, text: {"match": True, "kind": "product", "reason": "", "reply": ""}
-        def notify(url, author, verdict):
+        def notify(url, author, verdict, post_text=""):
             if url == "b":
                 raise RuntimeError("slack down")
         assert main() == 1
