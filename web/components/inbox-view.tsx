@@ -130,7 +130,7 @@ export function InboxView({ followUps = false }: { followUps?: boolean }) {
         )}
       </div>
 
-      <div className="-mb-px overflow-x-auto px-5 lg:px-10">
+      <div className="overflow-x-auto overflow-y-hidden px-5 lg:px-10">
         <div className="flex min-w-max gap-1" role="tablist" aria-label={followUps ? "Follow-up filters" : "Pipeline"}>
           {followUps ? (
             [["all", "All scheduled", base.length], ["due", "Due now", due]].map(([id, label, n]) => (
@@ -188,7 +188,7 @@ export function InboxView({ followUps = false }: { followUps?: boolean }) {
 function TabButton({ selected, onClick, label, count }: { selected: boolean; onClick: () => void; label: string; count: number }) {
   return (
     <button type="button" role="tab" aria-selected={selected} onClick={onClick}
-      className={cn("-mb-px flex items-center gap-2 border-b-2 border-transparent px-3 py-2.5 text-sm whitespace-nowrap text-muted-foreground transition-colors duration-150 hover:text-foreground", selected && "border-foreground font-medium text-foreground")}>
+      className={cn("flex items-center gap-2 px-3 py-2.5 text-sm whitespace-nowrap text-muted-foreground shadow-[inset_0_-2px_0_transparent] transition-[color,box-shadow] duration-150 outline-ring hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2", selected && "font-medium text-foreground shadow-[inset_0_-2px_0_var(--foreground)]")}>
       {label}<span className="font-mono text-xs tabular">{count}</span>
     </button>
   );
