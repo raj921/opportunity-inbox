@@ -20,3 +20,14 @@ create table if not exists leads (
   notes       text not null default '',
   created_at  timestamptz not null default now()
 );
+
+-- Worker heartbeat, independent of browser refreshes. No secrets or raw provider errors.
+create table if not exists source_health (
+  platform text primary key,
+  checked_at timestamptz not null,
+  last_success_at timestamptz,
+  status text not null,
+  posts integer not null default 0,
+  leads integer not null default 0,
+  detail text not null default ''
+);

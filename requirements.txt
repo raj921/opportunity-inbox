@@ -1,5 +1,5 @@
-apify-client
-anthropic
-requests
-python-dotenv
-psycopg[binary]
+apify-client==3.4.0
+anthropic==2.3.0
+requests==2.34.2
+python-dotenv==1.2.4
+psycopg[binary]==3.3.7

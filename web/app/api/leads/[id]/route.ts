@@ -1,5 +1,5 @@
 import { updateLead, type LeadPatch } from "@/lib/db";
-import { STATUSES } from "@/lib/lead-utils";
+import { STATUSES, validDate } from "@/lib/lead-utils";
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -16,10 +16,11 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     patch[k] = b[k];
   }
   if (b?.followUp !== undefined) {
-    if (b.followUp !== null && !/^\d{4}-\d{2}-\d{2}$/.test(b.followUp)) return bad("Follow-up must be a date.");
+    if (b.followUp !== null && !validDate(b.followUp)) return bad("Follow-up must be a real calendar date.");
     patch.followUp = b.followUp;
   }
   if (!Object.keys(patch).length) return bad("Nothing to change.");
-  if (!(await updateLead(id, patch))) return Response.json({ error: "Lead not found." }, { status: 404 });
-  return Response.json({ ok: true });
+  const lead = await updateLead(id, patch);
+  if (!lead) return Response.json({ error: "Lead not found." }, { status: 404 });
+  return Response.json({ lead });
 }

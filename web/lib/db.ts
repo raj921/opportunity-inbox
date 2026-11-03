@@ -1,5 +1,5 @@
 import { neon } from "@neondatabase/serverless";
-import type { Lead, Status } from "./lead-utils";
+import type { Lead, LeadPatch } from "./lead-utils";
 
 // Leads live in Neon Postgres (schema.sql). The daily scan inserts them; the inbox reads and updates them.
 const sql = neon(process.env.DATABASE_URL!);
@@ -21,7 +21,7 @@ export async function insertLead(l: Omit<Lead, "status" | "statusAt" | "repliedA
   return rows.length > 0; // false: the post is already a lead
 }
 
-export type LeadPatch = { status?: Status; reply?: string; notes?: string; followUp?: string | null };
+export type { LeadPatch } from "./lead-utils";
 
 // Reply time counts from when a lead was found to the first move out of "new"; moving it back to "new" resets it.
 export async function updateLead(id: string, p: LeadPatch) {
@@ -31,13 +31,17 @@ export async function updateLead(id: string, p: LeadPatch) {
        status_at = case when $2::text is null then status_at else now() end,
        replied_at = case when $2::text is null then replied_at
                          when $2::text = 'new' then null
-                         when $2::text = 'skipped' then replied_at
+                         when $2::text in ('skipped', 'lost') then replied_at
                          else coalesce(replied_at, now()) end,
        reply = coalesce($3::text, reply),
        notes = coalesce($4::text, notes),
        follow_up = case when $5::boolean then $6::date else follow_up end
-     where id = $1 returning id`,
+     where id = $1 returning ${COLUMNS}`,
     [id, p.status ?? null, p.reply ?? null, p.notes ?? null, "followUp" in p, p.followUp ?? null],
   );
-  return rows.length > 0;
+  return (rows[0] as Lead | undefined) ?? null;
+}
+
+export async function sourceHealth() {
+  return sql.query(`select platform, checked_at as "checkedAt", last_success_at as "lastSuccessAt", status, posts, leads, detail from source_health order by platform`);
 }

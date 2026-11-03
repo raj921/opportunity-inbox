@@ -30,7 +30,7 @@ export function AddLeadDialog() {
   };
 
   async function check(form: HTMLFormElement | null) {
-    if (!form?.reportValidity()) return;
+    if (busy || !form?.reportValidity()) return;
     setBusy("check");
     setError("");
     const r = await fetch("/api/check", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ author: f.author, text: f.text }) }).catch(() => null);
@@ -42,10 +42,10 @@ export function AddLeadDialog() {
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
-    if (!verdict) return;
+    if (busy) return;
     setBusy("save");
     const r = await fetch("/api/leads", { method: "POST", headers: { "content-type": "application/json" },
-      body: JSON.stringify({ ...f, kind: verdict.kind, priority: verdict.priority, why: verdict.reason, reply: verdict.reply }) }).catch(() => null);
+      body: JSON.stringify({ ...f, kind: verdict?.kind ?? "other", priority: verdict?.priority ?? "warm", why: verdict?.reason ?? "Added by hand; not screened by AI", reply: verdict?.reply ?? "" }) }).catch(() => null);
     const body = await r?.json().catch(() => null);
     setBusy("");
     if (r?.status === 409) {
@@ -61,7 +61,7 @@ export function AddLeadDialog() {
   }
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) { setF(EMPTY); setVerdict(null); setError(""); } }}>
+    <Dialog open={open} onOpenChange={(o) => { if (busy) return; setOpen(o); if (o) { setF(EMPTY); setVerdict(null); setError(""); } }}>
       <DialogTrigger asChild>
         <Button><Plus strokeWidth={1.5} /> Add a lead</Button>
       </DialogTrigger>
@@ -69,12 +69,12 @@ export function AddLeadDialog() {
         <form onSubmit={save} className="grid gap-5" id="add-lead">
           <DialogHeader>
             <DialogTitle className="font-heading">Add a lead</DialogTitle>
-            <DialogDescription>Found a post yourself? Claude checks if it&apos;s a real buyer and drafts a reply, with the same rules as the daily scan.</DialogDescription>
+            <DialogDescription>Save a post from any network. Optionally check buyer intent and generate a tailored reply before adding it.</DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4">
-            <Field id="f-url" label="Post link"><Input id="f-url" type="url" required placeholder="https://www.linkedin.com/posts/…" value={f.url} onChange={set("url")} /></Field>
-            <Field id="f-author" label="Author"><Input id="f-author" required placeholder="Name on the post" value={f.author} onChange={set("author")} /></Field>
-            <Field id="f-text" label="Post text"><Textarea id="f-text" required placeholder="Paste the post" className="min-h-28" value={f.text} onChange={set("text")} /></Field>
+          <fieldset disabled={!!busy} className="grid min-w-0 gap-4">
+            <Field id="f-url" label="Post link"><Input id="f-url" type="url" required maxLength={2000} placeholder="https://www.linkedin.com/posts/…" value={f.url} onChange={set("url")} /></Field>
+            <Field id="f-author" label="Author"><Input id="f-author" required maxLength={200} placeholder="Name on the post" value={f.author} onChange={set("author")} /></Field>
+            <Field id="f-text" label="Post text"><Textarea id="f-text" required maxLength={20000} placeholder="Paste the post" className="min-h-28" value={f.text} onChange={set("text")} /></Field>
             {verdict && (
               <div className={cn("grid gap-1.5 rounded-xl border p-3 text-sm", verdict.match ? "bg-good/10" : "bg-late/10")}>
                 <div className="flex items-center gap-3 font-medium">
@@ -85,12 +85,12 @@ export function AddLeadDialog() {
               </div>
             )}
             {error && <p className="text-sm text-late" role="alert">{error}</p>}
-          </div>
+          </fieldset>
           <DialogFooter>
             <Button type="button" variant="secondary" disabled={!!busy} onClick={(e) => check(e.currentTarget.form)}>
               {busy === "check" ? "Checking…" : "Check with Claude"}
             </Button>
-            <Button type="submit" disabled={!!busy || !verdict}>{verdict && !verdict.match ? "Add anyway" : "Add to inbox"}</Button>
+            <Button type="submit" disabled={!!busy}>{busy === "save" ? "Saving…" : !verdict ? "Save without AI" : !verdict.match ? "Add anyway" : "Add to inbox"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

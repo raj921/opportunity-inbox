@@ -4,18 +4,18 @@ import { useMemo } from "react";
 import { fmtDur, STATUS_LABEL } from "@/components/lead-card";
 import { useLeads } from "@/components/leads-provider";
 import { cn } from "@/lib/utils";
-import { KINDS, leadTime, PLATFORMS, STATUSES } from "@/lib/lead-utils";
+import { KINDS, leadTime, localDate, median, PLATFORMS, STATUSES } from "@/lib/lead-utils";
 
 const DAYS = 14;
-const dayKey = (ms: number) => new Date(ms).toLocaleDateString("en-CA"); // YYYY-MM-DD in local time
+const dayKey = localDate;
 const pct = (n: number, d: number) => (d ? Math.round((100 * n) / d) : 0);
 
 export default function ResultsPage() {
-  const { groups, now, leads } = useLeads();
+  const { groups, now, leads, live, reload } = useLeads();
 
   const r = useMemo(() => {
     const all = groups.map((g) => g.lead);
-    const engaged = all.filter((l) => l.repliedAt || ["replied", "talking", "won", "lost"].includes(l.status));
+    const engaged = all.filter((l) => l.repliedAt || ["replied", "talking", "won"].includes(l.status));
     const times = all.filter((l) => l.repliedAt && l.foundAt).map((l) => Date.parse(l.repliedAt!) - Date.parse(l.foundAt!)).sort((a, b) => a - b);
     const days = Array.from({ length: DAYS }, (_, i) => {
       const ms = now - (DAYS - 1 - i) * 86400e3;
@@ -34,7 +34,7 @@ export default function ResultsPage() {
     }
     return {
       all, engaged, days,
-      median: times.length ? times[Math.floor(times.length / 2)] : null,
+      median: median(times),
       won: all.filter((l) => l.status === "won").length,
       maxDay: Math.max(4, ...days.map((d) => d.total)),
       queries: [...byQuery.entries()].sort((a, b) => b[1].leads - a[1].leads),
@@ -44,13 +44,15 @@ export default function ResultsPage() {
   const reposts = (leads?.length ?? 0) - r.all.length;
   const ticks = [r.maxDay, Math.round(r.maxDay / 2), 0];
 
+  if (leads === null) return <div className="workspace-page"><header className="page-heading"><div><p className="eyebrow">Performance / Insights</p><h1>Every conversation counts.</h1></div></header><div role="status" className="rounded-xl border bg-card p-8 text-sm text-muted-foreground">{live === "off" ? <>Insights are unavailable until the lead database reconnects. <button className="underline" onClick={reload}>Retry</button></> : "Loading your insights…"}</div></div>;
   return (
-    <div className="mx-auto grid max-w-[1120px] gap-8 px-4 py-8 md:px-8 md:py-10">
-      <header className="grid gap-2">
-        <p className="font-mono text-xs text-muted-foreground">Since 29 Oct 2026</p>
-        <h1 className="font-heading text-3xl font-semibold tracking-tight md:text-4xl">Results</h1>
-        <p className="max-w-xl text-sm leading-6 text-text-2">How many buyers the scan finds, how fast the team replies and what turns into work. Reposts of one project count once.</p>
-      </header>
+    <div className="workspace-page">
+      <header className="page-heading"><div>
+        <p className="eyebrow">Performance / Insights</p>
+        <h1>Every conversation counts.</h1>
+        <p className="page-description">See which sources find buyers, how quickly you respond, and what turns into work. Similar posts count once.</p>
+      </div></header>
+      {live === "off" && <p role="alert" className="rounded-xl border bg-late/5 p-4 text-sm">Showing previously loaded insights. The database connection is unavailable.</p>}
 
       <section className="grid grid-cols-2 gap-3 md:grid-cols-4" aria-label="Summary">
         <Figure label="Leads found" value={String(r.all.length)} note={reposts ? `${reposts} reposts merged` : undefined} />

@@ -17,12 +17,15 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements.txt
+      - name: Verify scanner before making paid requests
+        run: python -m unittest discover -s tests -v
       - run: python inbox.py
         env:
           APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          REDDIT_ENABLED: ${{ vars.REDDIT_ENABLED || 'true' }}
       - name: Save seen posts
         if: always()  # inbox.py saves seen posts even when some failed
         run: |

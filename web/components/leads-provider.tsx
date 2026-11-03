@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { groupReposts, leadTime, type Lead } from "@/lib/lead-utils";
-import type { LeadPatch } from "@/lib/db";
+import type { LeadPatch } from "@/lib/lead-utils";
 
 const POLL_MS = 30000; // the scan adds leads once a day; this also picks up teammates' changes
 export const SLA_MS = 2 * 3600e3;
@@ -47,6 +47,7 @@ export function chime() {
       o.start(t);
       o.stop(t + 0.32);
     });
+    setTimeout(() => { void a.close(); }, 650);
   } catch {}
 }
 
@@ -61,6 +62,8 @@ export function LeadsProvider({ children }: { children: React.ReactNode }) {
   const [focus, setFocus] = useState<string | null>(null);
   const known = useRef<Set<string> | null>(null);
   const writes = useRef(0); // bumped around every save, so a refresh that overlapped a save can't undo it on screen
+  const pending = useRef(new Map<string, Promise<boolean>>());
+  const refresh = useRef(0);
   const soundRef = useRef(false);
   soundRef.current = sound;
 
@@ -88,10 +91,12 @@ export function LeadsProvider({ children }: { children: React.ReactNode }) {
   const reload = useCallback(async () => {
     try {
       const startedAt = writes.current;
+      const request = ++refresh.current;
+      if (pending.current.size) return;
       const r = await fetch("/api/leads", { cache: "no-store" });
       if (!r.ok) throw new Error(String(r.status));
       const list: Lead[] = (await r.json()).leads;
-      if (writes.current !== startedAt) return;
+      if (writes.current !== startedAt || pending.current.size || request !== refresh.current) return;
       if (known.current === null) {
         const last = Number(store.get("lastVisit") || 0);
         if (last) announce(list.filter((l) => l.status === "new" && leadTime(l) > last), true);
@@ -118,26 +123,23 @@ export function LeadsProvider({ children }: { children: React.ReactNode }) {
   }, [reload]);
 
   const patch = useCallback(async (id: string, body: LeadPatch, okMsg?: string) => {
-    let prev: Lead[] | null = null;
-    writes.current++;
-    setLeads((ls) => {
-      prev = ls;
-      const at = new Date().toISOString();
-      return ls?.map((l) => l.id !== id ? l : {
-        ...l, ...body,
-        statusAt: body.status ? at : l.statusAt,
-        repliedAt: body.status === "new" ? null : body.status && body.status !== "skipped" ? l.repliedAt ?? at : l.repliedAt,
-      }) ?? ls;
+    // Serialize writes to the same lead. Apply only confirmed server data; no list-wide rollback.
+    const task = (pending.current.get(id) ?? Promise.resolve(true)).then(async () => {
+      writes.current++;
+      const r = await fetch(`/api/leads/${id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }).catch(() => null);
+      const data = await r?.json().catch(() => null);
+      writes.current++;
+      if (!r?.ok || !data?.lead) {
+        toast.error("Couldn't save", { description: data?.error ?? "Your edit hasn't been saved. Check your connection and retry." });
+        return false;
+      }
+      setLeads(ls => ls?.map(l => l.id === id ? data.lead : l) ?? ls);
+      if (okMsg) toast.success(okMsg);
+      return true;
     });
-    const r = await fetch(`/api/leads/${id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }).catch(() => null);
-    writes.current++;
-    if (!r?.ok) {
-      setLeads(prev);
-      toast.error("Couldn't save", { description: (await r?.json().catch(() => null))?.error ?? "Check your connection and try again." });
-      return false;
-    }
-    if (okMsg) toast.success(okMsg);
-    return true;
+    pending.current.set(id, task);
+    try { return await task; }
+    finally { if (pending.current.get(id) === task) pending.current.delete(id); }
   }, []);
 
   const groups = useMemo(() => groupReposts(leads ?? []), [leads]);

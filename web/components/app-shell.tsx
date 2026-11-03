@@ -4,86 +4,67 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
-import { BarChart3, Bell, Inbox, Monitor, Moon, Sun } from "lucide-react";
+import { BarChart3, Bell, Inbox, Monitor, Moon, Sun, CalendarClock, Radio, ArrowUpRight, Layers3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { useLeads } from "./leads-provider";
+import { isFollowUpDue, localDate } from "@/lib/lead-utils";
 
 const fmtTime = (ms: number) => new Date(ms).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
-  const { groups } = useLeads();
-  const waiting = groups.filter((g) => g.lead.status === "new").length;
+  const { groups, now } = useLeads();
+  const waiting = groups.filter(g => g.lead.status === "new").length;
+  const due = groups.filter(g => isFollowUpDue(g.lead, localDate(now))).length;
   const nav = [
-    { href: "/", label: "Inbox", icon: Inbox, count: waiting },
-    { href: "/results", label: "Results", icon: BarChart3, count: null },
+    { href: "/", label: "Opportunities", icon: Inbox, count: waiting },
+    { href: "/follow-ups", label: "Follow-ups", icon: CalendarClock, count: due },
+    { href: "/results", label: "Insights", icon: BarChart3, count: 0 },
+    { href: "/sources", label: "Sources", icon: Radio, count: 0 },
   ];
-
   return (
-    <div className="min-h-dvh md:grid md:grid-cols-[248px_minmax(0,1fr)]">
-      <aside className="sticky top-0 hidden h-dvh flex-col border-r border-sidebar-border bg-sidebar px-3 py-4 md:flex">
-        <div className="flex h-9 items-center justify-between pl-2">
-          <Wordmark />
-          <AlertsButton />
+    <div className="min-h-dvh md:grid md:grid-cols-[224px_minmax(0,1fr)] xl:grid-cols-[248px_minmax(0,1fr)]">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded focus:bg-card focus:p-3">Skip to content</a>
+      <aside className="workspace-sidebar sticky top-0 hidden h-dvh flex-col px-4 py-7 md:flex">
+        <Wordmark />
+        <div className="mt-9 rounded-xl border border-white/10 bg-white/5 px-3 py-3">
+          <p className="flex items-center gap-2 text-sm font-medium"><span className="grid size-7 place-items-center rounded-lg bg-[#e9c66b] text-xs font-semibold text-[#182623]">G</span> Growth workspace</p>
+          <p className="mt-2 pl-9 text-[10px] uppercase tracking-[0.15em] text-white/45">Opportunity intelligence</p>
         </div>
-        <nav className="mt-6 grid gap-1" aria-label="Main">
-          {nav.map(({ href, label, icon: Icon, count }) => (
-            <Link key={href} href={href} aria-current={path === href ? "page" : undefined}
-              className={cn("flex h-9 items-center gap-2.5 rounded-lg px-2 text-sm font-medium text-text-2 transition-colors hover:bg-sidebar-accent hover:text-foreground",
-                path === href && "bg-sidebar-accent text-foreground shadow-[inset_0_1px_0_rgb(255_255_255/0.06)]")}>
-              <Icon className="size-4 text-muted-foreground" strokeWidth={1.5} />
-              {label}
-              {count ? <span className="ml-auto font-mono text-xs text-muted-foreground tabular">{count}</span> : null}
-            </Link>
-          ))}
-        </nav>
-        <div className="mt-auto grid gap-3 px-2">
-          <ScanStatus />
-          <ThemeMenu />
+        <p className="mt-8 mb-3 px-3 text-[10px] font-medium uppercase tracking-[0.18em] text-white/40">Workspace</p>
+        <nav className="grid gap-1.5" aria-label="Main">{nav.map(({href,label,icon:Icon,count}) => <Link key={href} href={href} aria-current={path===href ? "page" : undefined} className={cn("sidebar-link", path===href && "sidebar-link-active")}><Icon className="size-[18px]" strokeWidth={1.5} />{label}{count>0 && <span className="ml-auto rounded-md bg-white/10 px-1.5 py-0.5 font-mono text-[10px] tabular">{count}</span>}</Link>)}</nav>
+        <div className="mt-auto grid gap-5 pt-8">
+          <div className="rounded-xl border border-white/10 p-4"><ArrowUpRight className="mb-3 size-5 text-[#e9c66b]" /><p className="text-sm font-medium">Find the signal.</p><p className="mt-1.5 text-xs leading-5 text-white/50">Be useful, be personal, and turn buying intent into your next conversation.</p></div>
+          <div className="border-t border-white/10 pt-4"><ScanStatus /></div>
+          <div className="flex items-center justify-between"><ThemeMenu compact /><AlertsButton /></div>
         </div>
       </aside>
-
-      <header className="sticky top-0 z-20 flex h-14 items-center gap-1 border-b bg-background/95 px-3 backdrop-blur md:hidden">
-        <Wordmark />
-        <nav className="ml-auto flex items-center" aria-label="Main">
-          {nav.map(({ href, label }) => (
-            <Link key={href} href={href} aria-current={path === href ? "page" : undefined}
-              className={cn("rounded-md px-2.5 py-1.5 text-sm font-medium text-muted-foreground", path === href && "bg-secondary text-foreground")}>
-              {label}
-            </Link>
-          ))}
-        </nav>
-        <AlertsButton />
-        <ThemeMenu compact />
-      </header>
-
-      <main className="min-w-0">{children}</main>
+      <div className="min-w-0">
+        <header className="workspace-topbar"><div className="md:hidden"><Wordmark /></div><span className="hidden text-xs text-muted-foreground md:block">Opportunity Inbox <span className="mx-3 text-border">/</span> {nav.find(n=>n.href===path)?.label ?? "Workspace"}</span><div className="ml-auto flex items-center gap-3"><span suppressHydrationWarning className="hidden text-xs text-muted-foreground sm:block">{new Date(now).toLocaleDateString("en-GB", { day:"numeric", month:"short", year:"numeric" })}</span><span className="grid size-7 place-items-center rounded-full border bg-secondary text-[10px] font-semibold">OI</span></div></header>
+        <nav className="flex gap-1 overflow-x-auto border-b bg-background px-3 py-2 md:hidden" aria-label="Mobile navigation">{nav.map(({href,label,icon:Icon})=><Link key={href} href={href} aria-current={path===href ? "page" : undefined} className={cn("flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-2 text-xs text-muted-foreground",path===href && "bg-secondary text-foreground")}><Icon className="size-3.5" />{label}</Link>)}<ThemeMenu compact /><AlertsButton /></nav>
+        <main id="main-content" className="min-w-0">{children}</main>
+      </div>
     </div>
   );
 }
 
 function Wordmark() {
-  return (
-    <Link href="/" className="flex items-center gap-2 font-heading text-[15px] font-semibold tracking-tight whitespace-nowrap md:text-[17px]">
-      <span className="grid size-6 place-items-center rounded-md bg-brand text-[13px] text-[#111]" aria-hidden>O</span>
-      Opportunity Inbox
-    </Link>
-  );
+  return <Link href="/" className="flex items-center gap-2.5 font-heading text-[16px] font-semibold tracking-tight whitespace-nowrap"><span className="grid size-8 place-items-center rounded-xl bg-[#e9c66b] text-[#182623]"><Layers3 className="size-[18px]" strokeWidth={1.7} /></span><span>opportunity<span className="font-normal opacity-60"> / inbox</span></span></Link>;
 }
 
 function ScanStatus() {
   const { live, checkedAt } = useLeads();
   return (
-    <div className="grid gap-1 text-xs text-muted-foreground">
+    <div className="grid gap-1 text-xs text-white/50">
       <span className="flex items-center gap-2">
         <span className={cn("size-1.5 rounded-full", live === "on" ? "bg-good" : live === "off" ? "bg-late" : "bg-muted-foreground")} />
-        {live === "on" ? `Up to date · ${fmtTime(checkedAt)}` : live === "off" ? "Can't reach the server" : "Connecting"}
+        {live === "on" ? `Inbox synced · ${fmtTime(checkedAt)}` : live === "off" ? "Can't reach the server" : "Connecting"}
       </span>
-      <span>LinkedIn and X are scanned once a day</span>
+      <span><Link href="/sources" className="mt-1 underline underline-offset-4 hover:text-white">View scan health</Link></span>
     </div>
   );
 }
