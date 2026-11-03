@@ -191,7 +191,7 @@
   --brand-ink: #e9c66b;
   --text-2: #c2cdc4;
 }
-.workspace-page { max-width: 1360px; margin: 0 auto; padding: 36px 40px 28px; display: grid; gap: 28px; }
+.workspace-page { max-width: 1360px; margin: 0 auto; padding: 36px 40px 28px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; }
 .page-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 24px; }
 .eyebrow { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted-foreground); margin-bottom: 12px; font-weight: 600; }
 .page-heading h1 { font-family: var(--font-display); font-size: clamp(24px, 2.4vw, 32px); font-weight: 600; letter-spacing: -.045em; line-height: 1.2; }
