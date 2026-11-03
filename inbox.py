@@ -53,7 +53,7 @@ SCHEMA = {"type": "object", "additionalProperties": False, "required": ["match",
 
 
 def posted_limit(last_run, now):
-    # 1h window is cheapest, but if a run was missed (laptop asleep) widen so nothing slips through.
+    
     gap = now - last_run
     return "1h" if gap <= 3600 + 600 else "24h" if gap <= 86400 else "week"
 
@@ -63,6 +63,8 @@ def fetch_posts(limit):
     run = client.actor("harvestapi/linkedin-post-search").call(run_input={
         "searchQueries": QUERIES, "sortBy": "date", "postedLimit": limit, "maxPosts": MAX_POSTS_PER_QUERY,
     })
+    if not run or run.status != "SUCCEEDED":  # e.g. out of credit: fail loudly rather than treat it as "no posts"
+        raise RuntimeError(f"Apify run did not succeed: {run.status if run else 'no run'}")
     return client.dataset(run.default_dataset_id).list_items().items
 
 
@@ -100,19 +102,30 @@ def main():
     state = json.loads(STATE.read_text()) if STATE.exists() else {"last_run": 0, "seen": []}
     seen = set(state["seen"])
     claude = anthropic.Anthropic(api_key=ENV["ANTHROPIC_API_KEY"])
-    leads = 0
-    for post in fetch_posts(posted_limit(state["last_run"], now)):
-        url, author, text = fields(post)
-        if not url or url in seen or not text:
-            continue
-        verdict = classify(claude, author, text)
-        if verdict.get("match"):
-            notify(url, author, verdict)
-            leads += 1
-        seen.add(url)  # only after notify succeeded, so a Slack failure retries next run
-    # Save last_run only after the whole run succeeds, so a crash widens the next window.
-    STATE.write_text(json.dumps({"last_run": now, "seen": sorted(seen)[-5000:]}))
-    print(f"{time.strftime('%F %T')} leads={leads} seen={len(seen)}")
+    leads = failed = 0
+    ok = False
+    try:
+        for post in fetch_posts(posted_limit(state["last_run"], now)):
+            url, author, text = fields(post)
+            if not url or url in seen or not text:
+                continue
+            try:
+                verdict = classify(claude, author, text)
+                if verdict.get("match"):
+                    notify(url, author, verdict)
+                    leads += 1
+            except Exception as e:  # one bad post (Claude/Slack/Sheet down) must not stop the rest
+                failed += 1
+                print(f"{time.strftime('%F %T')} error on {url}: {e!r}", file=sys.stderr)
+                continue
+            seen.add(url)  # only after notify succeeded, so a failed post is retried next run
+        ok = not failed
+    finally:
+        # Always save seen, so posts already alerted are never alerted twice.
+        # Advance last_run only on a clean run, so the next window is wide enough to re-fetch failed posts.
+        STATE.write_text(json.dumps({"last_run": now if ok else state["last_run"], "seen": sorted(seen)[-5000:]}))
+    print(f"{time.strftime('%F %T')} leads={leads} failed={failed} seen={len(seen)}")
+    return failed
 
 
 if __name__ == "__main__":
@@ -124,6 +137,17 @@ if __name__ == "__main__":
         assert fields({}) == (None, "unknown", "")
         # LinkedIn rejects a query with more than 5 OR/AND/NOT operators
         assert all(sum(w in ("OR", "AND", "NOT") for w in q.split()) <= 5 for q in QUERIES)
+        # A failing post: the good one is saved as seen, the bad one isn't, and last_run doesn't advance.
+        import tempfile
+        STATE = Path(tempfile.mkdtemp()) / "state.json"
+        ENV.setdefault("ANTHROPIC_API_KEY", "test")
+        fetch_posts = lambda limit: [{"linkedinUrl": u, "content": "x"} for u in ("a", "b")]
+        classify = lambda claude, author, text: {"match": True, "kind": "product", "reason": "", "reply": ""}
+        def notify(url, author, verdict):
+            if url == "b":
+                raise RuntimeError("slack down")
+        assert main() == 1
+        assert json.loads(STATE.read_text()) == {"last_run": 0, "seen": ["a"]}
         print("ok")
     else:
-        main()
+        sys.exit(1 if main() else 0)  # non-zero exit marks the run failed in the log / GitHub Actions
