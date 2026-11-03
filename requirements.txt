@@ -2,3 +2,4 @@ apify-client
 anthropic
 requests
 python-dotenv
+psycopg[binary]

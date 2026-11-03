@@ -1,8 +1,7 @@
 name: opportunity-inbox
 on:
-  # Paused until go-live (add repo secrets, remove the Mac cron), then uncomment:
-  # schedule:
-  #   - cron: "0 * * * *"  # hourly; GitHub may start it 5-30 min late, still inside the 2h target
+  schedule:
+    - cron: "30 0 * * *"  # daily 06:00 IST; GitHub may start it late, inbox.py widens the search window to cover that
   workflow_dispatch:
 permissions:
   contents: write  # to commit state.json back
@@ -22,9 +21,10 @@ jobs:
         env:
           APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          SHEET_WEBHOOK_URL: ${{ secrets.SHEET_WEBHOOK_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
       - name: Save seen posts
+        if: always()  # inbox.py saves seen posts even when some failed
         run: |
           git config user.name "opportunity-inbox"
           git config user.email "actions@users.noreply.github.com"

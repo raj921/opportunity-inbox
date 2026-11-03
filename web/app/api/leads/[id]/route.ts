@@ -1,20 +1,25 @@
-import { editLead, readLeads, STATUSES, type Lead } from "@/lib/leads";
+import { updateLead, type LeadPatch } from "@/lib/db";
+import { STATUSES } from "@/lib/lead-utils";
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const b = await req.json().catch(() => null);
-  const patch: Partial<Lead> = {};
+  const patch: LeadPatch = {};
+  const bad = (msg: string) => Response.json({ error: msg }, { status: 400 });
   if (b?.status !== undefined) {
-    if (!STATUSES.includes(b.status)) return Response.json({ error: "Unknown status." }, { status: 400 });
+    if (!STATUSES.includes(b.status)) return bad("Unknown status.");
     patch.status = b.status;
-    patch.statusAt = b.status === "new" ? null : new Date().toISOString();
   }
-  if (b?.reply !== undefined) {
-    if (typeof b.reply !== "string" || b.reply.length > 4000) return Response.json({ error: "Reply must be text under 4,000 characters." }, { status: 400 });
-    patch.reply = b.reply;
+  for (const k of ["reply", "notes"] as const) {
+    if (b?.[k] === undefined) continue;
+    if (typeof b[k] !== "string" || b[k].length > 4000) return bad(`${k} must be text under 4,000 characters.`);
+    patch[k] = b[k];
   }
-  if (!Object.keys(patch).length) return Response.json({ error: "Nothing to change." }, { status: 400 });
-  if (!(await readLeads()).some((l) => l.id === id)) return Response.json({ error: "Lead not found." }, { status: 404 });
-  await editLead(id, patch);
+  if (b?.followUp !== undefined) {
+    if (b.followUp !== null && !/^\d{4}-\d{2}-\d{2}$/.test(b.followUp)) return bad("Follow-up must be a date.");
+    patch.followUp = b.followUp;
+  }
+  if (!Object.keys(patch).length) return bad("Nothing to change.");
+  if (!(await updateLead(id, patch))) return Response.json({ error: "Lead not found." }, { status: 404 });
   return Response.json({ ok: true });
 }

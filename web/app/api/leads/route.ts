@@ -1,9 +1,10 @@
-import { appendLead, leadId, readLeads } from "@/lib/leads";
+import { insertLead, listLeads } from "@/lib/db";
+import { KINDS, leadId, PRIORITIES } from "@/lib/lead-utils";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  return Response.json({ leads: await readLeads() });
+  return Response.json({ leads: await listLeads() });
 }
 
 // "Add a lead": a post someone found by hand, already checked by /api/check.
@@ -15,17 +16,17 @@ export async function POST(req: Request) {
     return Response.json({ error: "Post link, author and post text are required." }, { status: 400 });
   }
   const id = leadId(url);
-  if ((await readLeads()).some((l) => l.id === id)) {
-    return Response.json({ error: "This post is already in the inbox.", id }, { status: 409 });
-  }
-  const kind = ["workshop", "training", "product", "other"].includes(b.kind) ? b.kind : "other";
-  await appendLead({
-    url, author, kind,
+  const added = await insertLead({
+    id, url, author,
+    kind: KINDS.includes(b.kind) ? b.kind : "other",
+    priority: PRIORITIES.includes(b.priority) ? b.priority : "warm",
     why: str(b.why, 1000) ?? "Added by hand",
     reply: str(b.reply, 4000) ?? "",
     excerpt: text.replace(/\s+/g, " ").slice(0, 360),
+    query: null,
     source: "manual",
     foundAt: new Date().toISOString(),
   });
+  if (!added) return Response.json({ error: "This post is already in the inbox.", id }, { status: 409 });
   return Response.json({ id }, { status: 201 });
 }
