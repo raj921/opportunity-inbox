@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { fmtDur, STATUS_LABEL } from "@/components/lead-card";
 import { useLeads } from "@/components/leads-provider";
 import { cn } from "@/lib/utils";
-import { KINDS, leadTime, STATUSES } from "@/lib/lead-utils";
+import { KINDS, leadTime, PLATFORMS, STATUSES } from "@/lib/lead-utils";
 
 const DAYS = 14;
 const dayKey = (ms: number) => new Date(ms).toLocaleDateString("en-CA"); // YYYY-MM-DD in local time
@@ -108,7 +108,11 @@ export default function ResultsPage() {
             })}
           </ul>
           <div className="mt-2 grid gap-2 border-t pt-4">
-            <h3 className="text-sm font-medium">By type</h3>
+            <h3 className="text-sm font-medium">By platform</h3>
+            {Object.entries(PLATFORMS).map(([p, name]) => (
+              <div key={p} className="flex justify-between text-sm"><span className="text-text-2">{name}</span><span className="font-mono tabular">{r.all.filter((l) => l.platform === p).length}</span></div>
+            ))}
+            <h3 className="mt-2 text-sm font-medium">By type</h3>
             {KINDS.map((k) => (
               <div key={k} className="flex justify-between text-sm"><span className="capitalize text-text-2">{k}</span><span className="font-mono tabular">{r.all.filter((l) => l.kind === k).length}</span></div>
             ))}

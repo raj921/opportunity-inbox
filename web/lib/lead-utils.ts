@@ -3,6 +3,7 @@
 export const KINDS = ["workshop", "training", "product", "other"] as const;
 export const PRIORITIES = ["hot", "warm", "cold"] as const;
 export const STATUSES = ["new", "replied", "talking", "won", "lost", "skipped"] as const;
+export const PLATFORMS = { linkedin: "LinkedIn", x: "X" } as const;
 export type Kind = (typeof KINDS)[number];
 export type Priority = (typeof PRIORITIES)[number];
 export type Status = (typeof STATUSES)[number];
@@ -10,6 +11,7 @@ export type Status = (typeof STATUSES)[number];
 export type Lead = {
   id: string;
   url: string;
+  platform: keyof typeof PLATFORMS;
   author: string;
   kind: Kind;
   priority: Priority;
@@ -27,10 +29,12 @@ export type Lead = {
   notes: string;
 };
 
-// The LinkedIn activity number names a post across URL variants. Same as lead_id() in inbox.py.
+// The LinkedIn activity number or the X post number names a post across URL variants. Same as lead_id() in inbox.py.
 export function leadId(url: string) {
   const m = url.match(/activity[-:](\d{10,})/);
   if (m) return "li_" + m[1];
+  const x = url.match(/(?:twitter|x)\.com\/[^/]+\/status\/(\d+)/);
+  if (x) return "x_" + x[1];
   let h = 0;
   for (const c of url) h = (h * 31 + c.charCodeAt(0)) | 0;
   return "url_" + (h >>> 0).toString(36);

@@ -2,6 +2,7 @@
 create table if not exists leads (
   id          text primary key,              -- li_<LinkedIn activity number>, see lead_id() in inbox.py
   url         text not null,
+  platform    text not null default 'linkedin', -- linkedin | x
   author      text not null,
   kind        text not null default 'other', -- workshop | training | product | other
   priority    text not null default 'warm',  -- hot | warm | cold

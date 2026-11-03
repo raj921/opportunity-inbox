@@ -83,7 +83,7 @@ function ScanStatus() {
         <span className={cn("size-1.5 rounded-full", live === "on" ? "bg-good" : live === "off" ? "bg-late" : "bg-muted-foreground")} />
         {live === "on" ? `Up to date · ${fmtTime(checkedAt)}` : live === "off" ? "Can't reach the server" : "Connecting"}
       </span>
-      <span>LinkedIn is scanned once a day</span>
+      <span>LinkedIn and X are scanned once a day</span>
     </div>
   );
 }

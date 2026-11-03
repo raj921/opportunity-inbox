@@ -4,7 +4,7 @@ import type { Lead, Status } from "./lead-utils";
 // Leads live in Neon Postgres (schema.sql). The daily scan inserts them; the inbox reads and updates them.
 const sql = neon(process.env.DATABASE_URL!);
 
-const COLUMNS = `id, url, author, kind, priority, why, reply, excerpt, query, source, posted_date as "postedDate",
+const COLUMNS = `id, url, platform, author, kind, priority, why, reply, excerpt, query, source, posted_date as "postedDate",
   found_at as "foundAt", status, status_at as "statusAt", replied_at as "repliedAt",
   to_char(follow_up, 'YYYY-MM-DD') as "followUp", notes`;
 
@@ -14,9 +14,9 @@ export async function listLeads() {
 
 export async function insertLead(l: Omit<Lead, "status" | "statusAt" | "repliedAt" | "followUp" | "notes" | "postedDate">) {
   const rows = await sql.query(
-    `insert into leads (id, url, author, kind, priority, why, reply, excerpt, query, source, found_at)
-     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) on conflict (id) do nothing returning id`,
-    [l.id, l.url, l.author, l.kind, l.priority, l.why, l.reply, l.excerpt, l.query, l.source, l.foundAt],
+    `insert into leads (id, url, platform, author, kind, priority, why, reply, excerpt, query, source, found_at)
+     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) on conflict (id) do nothing returning id`,
+    [l.id, l.url, l.platform, l.author, l.kind, l.priority, l.why, l.reply, l.excerpt, l.query, l.source, l.foundAt],
   );
   return rows.length > 0; // false: the post is already a lead
 }

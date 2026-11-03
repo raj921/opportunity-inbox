@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { STATUSES, type Lead, type Priority, type Status } from "@/lib/lead-utils";
+import { PLATFORMS, STATUSES, type Lead, type Priority, type Status } from "@/lib/lead-utils";
 import { SLA_MS, useLeads } from "./leads-provider";
 
 export const STATUS_LABEL: Record<Status, string> = {
@@ -101,7 +101,7 @@ export function LeadCard({ lead: l, reposts }: { lead: Lead; reposts: Lead[] }) 
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
         <PriorityLabel priority={l.priority} />
         <h3 className="text-[15px] font-medium">{l.author}</h3>
-        <span className="font-mono text-xs text-muted-foreground">{l.kind} · {SOURCE_LABEL[l.source]}</span>
+        <span className="font-mono text-xs text-muted-foreground">{PLATFORMS[l.platform] ?? l.platform} · {l.kind} · {SOURCE_LABEL[l.source]}</span>
         <span className="ml-auto"><ReplyClock lead={l} now={now} /></span>
       </div>
 

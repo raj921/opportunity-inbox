@@ -18,6 +18,7 @@ export async function POST(req: Request) {
   const id = leadId(url);
   const added = await insertLead({
     id, url, author,
+    platform: /(^|\.)(x|twitter)\.com\//.test(new URL(url).hostname + "/") ? "x" : "linkedin",
     kind: KINDS.includes(b.kind) ? b.kind : "other",
     priority: PRIORITIES.includes(b.priority) ? b.priority : "warm",
     why: str(b.why, 1000) ?? "Added by hand",

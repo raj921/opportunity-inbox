@@ -7,7 +7,7 @@ try {
 } catch {}
 
 // Keep in sync with PROMPT and SCHEMA in inbox.py, so hand-added posts are judged like the daily scan's.
-const PROMPT = `You screen LinkedIn posts for a team that runs AI workshops/trainings and builds AI-powered products.
+const PROMPT = `You screen social media posts (LinkedIn, X) for a team that runs AI workshops/trainings and builds AI-powered products.
 Is the AUTHOR asking to BUY one of those (wants a workshop/training for their team, or wants a product/app/platform built)?
 Public RFPs/tenders inviting vendors to build a platform or deliver training ARE matches, even if shared on someone else's behalf.
 Posts by vendors/trainers advertising their own services, job seekers, and generic AI opinion posts are NOT matches.

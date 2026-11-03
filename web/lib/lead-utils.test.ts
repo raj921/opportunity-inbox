@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { groupReposts, leadId, type Lead } from "./lead-utils.ts";
 
 assert.equal(leadId("https://www.linkedin.com/posts/x_y-activity-7523256979247513602-H2j8"), "li_7523256979247513602");
+assert.equal(leadId("https://x.com/steve/status/1985123456789012345?s=20"), "x_1985123456789012345");
 assert.equal(leadId("https://example.com/p/1"), "url_1oa81w1"); // same as lead_id() in inbox.py
 
 const lead = (id: string, excerpt: string, foundAt: string) => ({ id, excerpt, foundAt, postedDate: null }) as Lead;
