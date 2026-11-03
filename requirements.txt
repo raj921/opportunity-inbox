@@ -1,0 +1,4 @@
+apify-client
+anthropic
+requests
+python-dotenv

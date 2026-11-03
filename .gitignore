@@ -1,0 +1,7 @@
+# secrets
+.env
+# local only
+.venv/
+__pycache__/
+inbox.log
+.DS_Store
