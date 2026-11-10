@@ -1,0 +1,13 @@
+# secrets
+.env
+# local only
+.DS_Store
+# web inbox
+node_modules/
+.next/
+out/
+next-env.d.ts
+tsconfig.tsbuildinfo
+.env*
+.vercel
+.env*.local

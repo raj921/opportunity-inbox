@@ -1,0 +1,152 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* Light only. Keeps leftover dark: classes in ui/ inert instead of following the OS setting. */
+@custom-variant dark (&:is(.dark *));
+
+
+@theme inline {
+  --font-heading: var(--font-display);
+  --font-sans: var(--font-text);
+  --font-mono: var(--font-text);
+  --font-weight-medium: 700;
+  --color-text-2: var(--text-2);
+  --color-gold: var(--gold);
+  --color-gold-ink: var(--gold-ink);
+  --color-rose: var(--rose);
+  --color-mint: var(--mint);
+  --color-sky: var(--sky);
+  --color-lilac: var(--lilac);
+  --color-ink: #111111;
+  --color-hot: var(--hot);
+  --color-warm: var(--warm);
+  --color-cold: var(--cold);
+  --color-good: var(--good);
+  --color-late: var(--late);
+  --color-line: var(--line-strong);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/*
+  Futurelab Afterhours. Silver canvas, White work areas, flat accent modules that always carry Ink text.
+  Accents mark something that needs you; priority and status always come with a word, never colour alone.
+  Earlier layout redesigned with the unslop process by Damir Sokolovsky (@heydamir), CC BY 4.0.
+*/
+:root {
+  --radius: 0.8333rem;
+  --rose: #F49AB1; --mint: #86DEB4; --sky: #82C3FF; --lilac: #C0A1EE; --gold: #F0D679;
+  --background: #EBEDF0;
+  --foreground: #111111;
+  --card: #FFFFFF;
+  --card-foreground: #111111;
+  --popover: #FFFFFF;
+  --popover-foreground: #111111;
+  --primary: #111111;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F8F9FA;
+  --secondary-foreground: #111111;
+  --muted: #F8F9FA;
+  --muted-foreground: #4B5563;
+  --accent: #EBEDF0;
+  --accent-foreground: #111111;
+  --destructive: #111111;
+  --border: rgb(17 17 17 / 0.08);
+  --line-strong: #B7BDC5;
+  --input: rgb(17 17 17 / 0.14);
+  --ring: #111111;
+  --text-2: #4B5563;
+  --gold-ink: #111111;
+  --hot: #F49AB1;
+  --warm: #F0D679;
+  --cold: #B7BDC5;
+  --good: #86DEB4;
+  --late: #F49AB1;
+  --chart-1: #111111;
+  --chart-2: #EBEDF0;
+  --chart-3: #B7BDC5;
+  --chart-4: #4B5563;
+  --chart-5: #4B5563;
+  --sidebar: #EBEDF0;
+  --sidebar-foreground: #111111;
+  --sidebar-primary: #111111;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #FFFFFF;
+  --sidebar-accent-foreground: #111111;
+  --sidebar-border: rgb(17 17 17 / 0.08);
+  --sidebar-ring: #111111;
+  --lift: 0 8px 24px rgb(17 17 17 / 0.06);
+  --ease-snap: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+
+@layer base {
+  * { @apply border-border outline-ring/50; }
+  html { @apply font-sans; text-rendering: optimizeLegibility; }
+  body { @apply bg-background text-foreground; }
+  ::selection { background: color-mix(in oklch, var(--gold) 60%, transparent); }
+  h1, h2, h3 { text-wrap: balance; }
+  body { line-height: 1.5; }
+}
+
+@layer components {
+  .portal-page { @apply flex min-w-0 flex-col gap-7; }
+  .portal-header { @apply flex shrink-0 flex-wrap items-start justify-between gap-4 lg:min-h-[92px]; }
+  .portal-heading { @apply grid min-w-0 gap-1.5; }
+  .portal-title { @apply font-heading text-[40px] leading-none font-bold tracking-[-0.03em]; }
+  .portal-description { @apply text-sm leading-6 text-muted-foreground; }
+  .portal-notice { @apply text-xs leading-4 text-muted-foreground; }
+}
+
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* Brand label: Inter 700, uppercase, wide tracking. */
+.eyebrow { font-size: 11px; font-weight: 700; line-height: 1.3; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted-foreground); }
+
+/* One entrance on first load: a short rise, staggered by row. Frequent actions (filtering, typing) never animate. */
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } }
+.rise { animation: rise 320ms var(--ease-snap) both; animation-delay: calc(var(--i, 0) * 40ms); }
+
+/* Thin, quiet scrollbars for the list and detail panes. */
+.quiet-scroll { scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
