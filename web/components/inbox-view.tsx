@@ -108,11 +108,11 @@ export function InboxView({ followUps = false }: { followUps?: boolean }) {
     : waiting.length ? `${waiting.length} waiting for a reply${overdue ? `, ${overdue} past the 2-hour mark` : ""}` : "Nothing is waiting for a reply";
 
   return (
-    <div className="flex min-h-[calc(100dvh-3.5rem)] flex-col md:min-h-dvh lg:h-dvh">
-      <div className="grid gap-5 px-5 pt-6 pb-4 lg:px-10 lg:pt-8">
+    <div className="flex min-h-[calc(100dvh-3.5rem)] flex-col gap-3 p-3 md:min-h-dvh md:pl-0 lg:h-dvh">
+      <div className="grid gap-4 px-2 pt-3 md:px-0 lg:pt-2">
         <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
           <div className="grid gap-1.5">
-            <h1 className="font-heading text-[40px] leading-none font-normal tracking-[-0.02em]">{followUps ? "Follow-ups" : "Inbox"}</h1>
+            <h1 className="font-heading text-[40px] leading-none font-bold tracking-[-0.035em]">{followUps ? "Follow-ups" : "Inbox"}</h1>
             <p className="text-sm text-muted-foreground" aria-live="polite">{subline}</p>
           </div>
           <div className="flex items-center gap-2">
@@ -122,15 +122,15 @@ export function InboxView({ followUps = false }: { followUps?: boolean }) {
         </header>
         {!followUps && (
           <StatStrip compact items={[
-            { label: "Waiting for a reply", value: leads === null ? "–" : waiting.length, onClick: () => { clearFilters(); setTab("new"); }, active: tab === "new" && queue === "all" },
-            { label: "Hot leads", value: leads === null ? "–" : hot, onClick: () => chooseQueue("hot"), active: queue === "hot" },
-            { label: "Past the 2-hour mark", value: leads === null ? "–" : overdue, tone: overdue ? "late" : undefined, onClick: () => chooseQueue("overdue"), active: queue === "overdue" },
-            { label: "Follow-ups due", value: leads === null ? "–" : due, onClick: () => chooseQueue("due"), active: queue === "due" },
+            { label: "Waiting for a reply", value: leads === null ? "–" : waiting.length, accent: waiting.length ? "gold" : undefined, onClick: () => { clearFilters(); setTab("new"); }, active: tab === "new" && queue === "all" },
+            { label: "Hot leads", value: leads === null ? "–" : hot, accent: hot ? "rose" : undefined, onClick: () => chooseQueue("hot"), active: queue === "hot" },
+            { label: "Past the 2-hour mark", value: leads === null ? "–" : overdue, accent: overdue ? "lilac" : undefined, onClick: () => chooseQueue("overdue"), active: queue === "overdue" },
+            { label: "Follow-ups due", value: leads === null ? "–" : due, accent: due ? "sky" : undefined, onClick: () => chooseQueue("due"), active: queue === "due" },
           ]} />
         )}
       </div>
 
-      <div className="overflow-x-auto overflow-y-hidden px-5 lg:px-10">
+      <div className="overflow-x-auto overflow-y-hidden px-2 [scrollbar-width:none] md:px-0">
         <div className="flex min-w-max gap-1" role="tablist" aria-label={followUps ? "Follow-up filters" : "Pipeline"}>
           {followUps ? (
             [["all", "All scheduled", base.length], ["due", "Due now", due]].map(([id, label, n]) => (
@@ -140,14 +140,14 @@ export function InboxView({ followUps = false }: { followUps?: boolean }) {
         </div>
       </div>
 
-      <div className="flex min-h-0 flex-1 border-t lg:grid lg:grid-cols-[minmax(340px,400px)_minmax(0,1fr)]">
-        <section aria-label="Leads" className="flex min-h-0 w-full flex-col lg:border-r">
-          <div className="flex items-center gap-2 px-3 pt-3 pb-2">
+      <div className="flex min-h-0 flex-1 gap-3 lg:grid lg:grid-cols-[minmax(340px,400px)_minmax(0,1fr)]">
+        <section aria-label="Leads" className="flex min-h-0 w-full flex-col overflow-hidden rounded-2xl bg-card">
+          <div className="flex items-center gap-2 p-3">
             <label className="relative min-w-0 flex-1">
               <span className="sr-only">Search leads</span>
               <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" strokeWidth={1.5} />
               <Input ref={searchRef} type="search" placeholder="Search" value={q} onChange={e => setQ(e.target.value)} className="pr-9 pl-9" />
-              <kbd className="pointer-events-none absolute top-1/2 right-2.5 hidden -translate-y-1/2 rounded border px-1.5 font-mono text-[11px] text-muted-foreground lg:block">/</kbd>
+              <kbd className="pointer-events-none absolute top-1/2 right-3 hidden -translate-y-1/2 rounded-md border px-1.5 text-[11px] text-muted-foreground lg:block">/</kbd>
             </label>
             <FiltersMenu {...{ platform, setPlatform, kind, setKind, priority, setPriority, sort, setSort, grouped, setGrouped, followUps, activeFilters }} />
           </div>
@@ -158,24 +158,24 @@ export function InboxView({ followUps = false }: { followUps?: boolean }) {
             </div>
           )}
           {live === "off" && (
-            <div role="alert" className="mx-3 mb-2 grid gap-2 rounded-xl border bg-late/5 p-3 text-[13px] leading-5">
+            <div role="alert" className="mx-3 mb-2 grid gap-2 rounded-xl border bg-rose text-ink border-transparent p-3 text-[13px] leading-5">
               <span>Can&apos;t refresh the inbox. {leads ? "Showing the last loaded data." : "Check the connection and try again."}</span>
               <Button variant="outline" size="sm" className="w-fit" onClick={reload}>Retry</Button>
             </div>
           )}
           <ul className="quiet-scroll grid min-h-0 flex-1 content-start gap-0.5 px-2 pt-1 pb-4 lg:overflow-y-auto" aria-label="Leads">
-            {leads === null && live !== "off" ? [0, 1, 2, 3].map(i => <li key={i} className="mx-1 h-[92px] animate-pulse rounded-xl bg-secondary/60" aria-hidden />)
+            {leads === null && live !== "off" ? [0, 1, 2, 3].map(i => <li key={i} className="mx-1 h-[92px] animate-pulse rounded-2xl bg-secondary" aria-hidden />)
               : shown.length ? shown.map((g, i) => <LeadRow key={g.lead.id} lead={g.lead} reposts={g.reposts} index={i} intro={intro} selected={active?.lead.id === g.lead.id} onSelect={() => setSelectedId(g.lead.id)} />)
               : leads !== null && <li className="grid justify-items-center gap-3 px-6 py-14 text-center">
-                  <p className="font-heading text-xl">{filtered ? "No leads match" : followUps ? "No follow-ups scheduled" : "Nothing waiting"}</p>
+                  <p className="font-heading text-xl font-bold tracking-[-0.03em]">{filtered ? "No leads match" : followUps ? "No follow-ups scheduled" : "Nothing waiting"}</p>
                   <p className="max-w-64 text-[13px] leading-5 text-muted-foreground">{filtered ? "Try another filter, or clear them to see everything." : followUps ? "Set a date on a replied lead and it will show up here." : "New requests appear after the next scan. You can also add a post yourself."}</p>
                   {filtered && <Button variant="outline" size="sm" onClick={clearFilters}>Clear filters</Button>}
                 </li>}
           </ul>
-          <p className="hidden items-center gap-3 border-t px-4 py-2.5 font-mono text-[11px] text-muted-foreground lg:flex"><span>j k move</span><span>c copy reply</span><span>e replied</span><span>/ search</span></p>
+          <p className="hidden items-center gap-4 border-t px-4 py-2.5 text-[11px] text-muted-foreground lg:flex">{[["j k", "move"], ["c", "copy reply"], ["e", "replied"], ["/", "search"]].map(([k, t]) => <span key={k}><b className="font-medium text-foreground">{k}</b> {t}</span>)}</p>
         </section>
 
-        <div className={cn("min-w-0", explicit ? "fixed inset-0 z-40 bg-background lg:static lg:z-auto" : "hidden lg:block")}>
+        <div className={cn("min-w-0", "overflow-hidden bg-card lg:rounded-2xl", explicit ? "fixed inset-0 z-40 lg:static lg:z-auto" : "hidden lg:block")}>
           {active
             ? <LeadDetail key={active.lead.id} lead={active.lead} reposts={active.reposts} actionsRef={actions} onBack={() => setSelectedId(null)} />
             : <div className="grid h-full place-items-center p-10 text-center text-sm text-muted-foreground">{leads === null ? "Loading" : "Select a lead to read the post and edit the reply."}</div>}
@@ -188,8 +188,8 @@ export function InboxView({ followUps = false }: { followUps?: boolean }) {
 function TabButton({ selected, onClick, label, count }: { selected: boolean; onClick: () => void; label: string; count: number }) {
   return (
     <button type="button" role="tab" aria-selected={selected} onClick={onClick}
-      className={cn("flex items-center gap-2 px-3 py-2.5 text-sm whitespace-nowrap text-muted-foreground shadow-[inset_0_-2px_0_transparent] transition-[color,box-shadow] duration-150 outline-ring hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2", selected && "font-medium text-foreground shadow-[inset_0_-2px_0_var(--foreground)]")}>
-      {label}<span className="font-mono text-xs tabular">{count}</span>
+      className={cn("flex h-9 items-center gap-2 rounded-full px-3.5 text-sm whitespace-nowrap text-text-2 transition-[background-color,color] duration-300 ease-[var(--ease-snap)] outline-ring hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2", selected && "bg-card font-medium text-foreground")}>
+      {label}<span className="text-xs tabular">{count}</span>
     </button>
   );
 }
@@ -203,7 +203,7 @@ function FiltersMenu(p: {
       <PopoverTrigger asChild>
         <Button variant="outline" aria-label={p.activeFilters ? `Filters, ${p.activeFilters} active` : "Filters"}>
           <SlidersHorizontal strokeWidth={1.5} /><span className="hidden sm:inline">Filters</span>
-          {p.activeFilters > 0 && <span className="grid size-5 place-items-center rounded-full bg-primary font-mono text-[11px] text-primary-foreground">{p.activeFilters}</span>}
+          {p.activeFilters > 0 && <span className="grid size-5 place-items-center rounded-full bg-primary text-[11px] text-primary-foreground">{p.activeFilters}</span>}
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="grid w-72 gap-4 p-4">
@@ -220,7 +220,7 @@ function FiltersMenu(p: {
 function Field({ label, value, onChange, options }: { label: string; value: string; onChange: (v: string) => void; options: [string, string][] }) {
   return (
     <div className="grid gap-1.5">
-      <span className="text-[13px] text-muted-foreground">{label}</span>
+      <span className="eyebrow">{label}</span>
       <Select value={value} onValueChange={onChange}>
         <SelectTrigger className="h-9 w-full" aria-label={label}><SelectValue /></SelectTrigger>
         <SelectContent>{options.map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}</SelectContent>

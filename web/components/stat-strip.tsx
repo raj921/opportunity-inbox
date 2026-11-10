@@ -1,20 +1,23 @@
+import { NumberTicker } from "@/components/motion/number-ticker";
 import { cn } from "@/lib/utils";
 
-export type Stat = { label: string; value: string | number; note?: string; tone?: "late"; onClick?: () => void; active?: boolean };
+export type Stat = { label: string; value: string | number; note?: string; accent?: "gold" | "rose" | "sky" | "mint" | "lilac"; onClick?: () => void; active?: boolean };
 
-// Four numbers in one container, divided by hairlines. A cell can act as a filter.
+const FILL = { gold: "bg-gold", rose: "bg-rose", sky: "bg-sky", mint: "bg-mint", lilac: "bg-lilac" };
+
+// One tile per number. A tile takes its accent only when it has something to say; a tile can act as a filter.
 export function StatStrip({ items, compact }: { items: Stat[]; compact?: boolean }) {
   return (
-    <section aria-label="Overview" className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border bg-border shadow-[var(--lift)] md:grid-cols-4">
+    <section aria-label="Overview" className="grid grid-cols-2 gap-2.5 md:grid-cols-4">
       {items.map((s) => {
         const body = (
           <>
-            <span className="text-[13px] text-muted-foreground">{s.label}</span>
-            <span className={cn("leading-none font-medium tracking-[-0.03em] tabular", compact ? "text-[28px]" : "text-[32px]", s.tone === "late" && "text-late")}>{s.value}</span>
-            {s.note && <span className="text-xs text-muted-foreground">{s.note}</span>}
+            <span className={cn("eyebrow", s.accent && "!text-ink")}>{s.label}</span>
+            <span className={cn("font-heading leading-none font-bold tracking-[-0.03em] tabular", compact ? "text-[34px]" : "text-[40px]")}>{typeof s.value === "number" ? <NumberTicker value={s.value} startOnView={false} duration={0.7} /> : s.value}</span>
+            {s.note && <span className={cn("text-xs", s.accent ? "text-ink" : "text-muted-foreground")}>{s.note}</span>}
           </>
         );
-        const cls = cn("grid content-between bg-card text-left transition-colors duration-150", compact ? "gap-2.5 p-4" : "gap-3 p-5", s.onClick && "hover:bg-secondary/60", s.active && "bg-secondary/70");
+        const cls = cn("grid content-between rounded-2xl text-left transition-[transform,box-shadow] duration-300 ease-[var(--ease-snap)]", s.accent ? [FILL[s.accent], "text-ink"] : "bg-card", compact ? "gap-3 px-4 py-3.5" : "gap-4 p-5", s.onClick && "hover:-translate-y-0.5", s.active && "shadow-[inset_0_0_0_1.5px_var(--foreground)]");
         return s.onClick
           ? <button key={s.label} type="button" onClick={s.onClick} aria-pressed={s.active} className={cls}>{body}</button>
           : <div key={s.label} className={cls}>{body}</div>;

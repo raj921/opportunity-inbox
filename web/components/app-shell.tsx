@@ -1,10 +1,11 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
-import { BarChart3, Bell, CalendarClock, Inbox, Monitor, Moon, Radio, Sun } from "lucide-react";
+import { BarChart3, Bell, CalendarClock, FlaskConical, Inbox, Monitor, Moon, Radio, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -25,27 +26,28 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     { href: "/follow-ups", label: "Follow-ups", icon: CalendarClock, count: due },
     { href: "/results", label: "Insights", icon: BarChart3, count: 0 },
     { href: "/sources", label: "Sources", icon: Radio, count: 0 },
+    { href: "/evals", label: "Evals", icon: FlaskConical, count: 0 },
   ];
   return (
-    <div className="min-h-dvh md:grid md:grid-cols-[232px_minmax(0,1fr)]">
+    <div className="min-h-dvh md:grid md:grid-cols-[236px_minmax(0,1fr)]">
       <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-lg focus:bg-card focus:p-3">Skip to content</a>
 
-      <aside className="sticky top-0 hidden h-dvh flex-col border-r border-sidebar-border bg-sidebar px-3 pt-5 pb-4 text-sidebar-foreground md:flex">
-        <div className="px-2.5"><Wordmark /></div>
+      <aside className="sticky top-0 hidden h-dvh flex-col bg-sidebar px-4 pt-6 pb-4 text-sidebar-foreground md:flex">
+        <div className="grid gap-2.5 px-2"><Wordmark /><p className="eyebrow">Opportunity Inbox</p></div>
         <nav className="mt-8 grid gap-0.5" aria-label="Main">
           {nav.map(({ href, label, icon: Icon, count }) => (
             <Link key={href} href={href} aria-current={path === href ? "page" : undefined}
-              className={cn("flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-sm text-text-2 transition-[background-color,color] duration-150 ease-[var(--ease-snap)] hover:bg-sidebar-accent/70 hover:text-foreground",
-                path === href && "bg-sidebar-accent font-medium text-foreground shadow-[inset_0_1px_0_rgb(255_255_255/0.07)]")}>
-              <Icon className="size-4 text-muted-foreground" strokeWidth={1.5} />
+              className={cn("flex h-10 items-center gap-2.5 rounded-full px-3.5 text-sm text-text-2 transition-[background-color,color] duration-300 ease-[var(--ease-snap)] hover:bg-sidebar-accent/60 hover:text-foreground",
+                path === href && "bg-sidebar-accent font-medium text-foreground")}>
+              <Icon className="size-4" strokeWidth={1.5} />
               {label}
-              {count > 0 && <span className="ml-auto font-mono text-xs text-muted-foreground tabular">{count}</span>}
+              {count > 0 && <span className="ml-auto text-xs font-medium tabular">{count}</span>}
             </Link>
           ))}
         </nav>
-        <div className="mt-auto grid gap-3 px-2.5">
+        <div className="mt-auto grid gap-3 px-2">
           <ScanStatus />
-          <div className="-mx-2 flex items-center justify-between border-t border-sidebar-border pt-3">
+          <div className="-mx-1 flex items-center justify-between border-t border-sidebar-border pt-3">
             <ThemeMenu />
             <AlertsButton />
           </div>
@@ -53,20 +55,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       <div className="min-w-0 pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
-        <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-background/90 px-4 backdrop-blur md:hidden">
+        <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-card/90 px-4 backdrop-blur md:hidden">
           <Wordmark />
           <div className="flex items-center"><AlertsButton /><ThemeMenu compact /></div>
         </header>
         <main id="main-content" className="min-w-0">{children}</main>
       </div>
 
-      <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t bg-background/92 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
+      <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t bg-card/92 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
         {nav.map(({ href, label, icon: Icon, count }) => (
           <Link key={href} href={href} aria-current={path === href ? "page" : undefined}
-            className={cn("relative flex h-14 flex-col items-center justify-center gap-1 text-[11px] text-muted-foreground transition-colors duration-150", path === href && "text-foreground")}>
+            className={cn("relative flex h-14 flex-col items-center justify-center gap-1 text-[11px] text-muted-foreground transition-colors duration-150", path === href && "font-medium text-foreground")}>
             <Icon className="size-[18px]" strokeWidth={path === href ? 1.8 : 1.5} />
             {label}
-            {count > 0 && <span className="absolute top-1.5 left-1/2 ml-2.5 grid h-4 min-w-4 place-items-center rounded-full bg-clay px-1 font-mono text-[10px] font-medium text-white tabular">{count}</span>}
+            {count > 0 && <span className="absolute top-1.5 left-1/2 ml-2.5 grid h-4 min-w-4 place-items-center rounded-full bg-gold px-1 font-mono text-[10px] font-medium text-ink tabular">{count}</span>}
           </Link>
         ))}
       </nav>
@@ -74,15 +76,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   );
 }
 
-// The mark is the product's signature: a ruler that ends at the 2-hour deadline.
+// The official logo. It has no dark version, so dark mode puts it in a white holder.
 function Wordmark() {
   return (
-    <Link href="/" className="flex items-center gap-2.5 whitespace-nowrap" aria-label="Opportunity Inbox, home">
-      <svg viewBox="0 0 20 20" className="size-5" fill="none" strokeWidth="1.7" strokeLinecap="round" aria-hidden>
-        <path d="M3 17V10M6.5 17v-4M10 17v-7M13.5 17v-4" stroke="currentColor" />
-        <path d="M17 17V4" stroke="var(--clay)" />
-      </svg>
-      <span className="font-heading text-xl leading-none font-medium tracking-[-0.01em]">Opportunity Inbox</span>
+    <Link href="/" className="w-fit rounded-xl dark:bg-white dark:px-1.5 dark:py-0.5" aria-label="Futurelab Studios, Opportunity Inbox home">
+      <Image src="/brand/logos/futurelab-logo-primary-1200.png" alt="Futurelab Studios" width={1200} height={300} priority className="-my-1 -ml-2 h-[52px] w-auto dark:my-0 dark:ml-0 dark:h-9" />
     </Link>
   );
 }
@@ -132,7 +130,7 @@ function AlertsButton() {
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" className="relative text-muted-foreground" aria-label={unseen ? `Alerts, ${unseen} new` : "Alerts"}>
           <Bell className="size-4" strokeWidth={1.5} />
-          {unseen > 0 && <span className="absolute top-0.5 right-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-clay px-1 font-mono text-[10px] font-medium text-white tabular">{unseen}</span>}
+          {unseen > 0 && <span className="absolute top-0.5 right-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-gold px-1 font-mono text-[10px] font-medium text-ink tabular">{unseen}</span>}
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 p-2">

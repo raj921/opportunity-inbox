@@ -76,7 +76,7 @@ export function AddLeadDialog() {
             <Field id="f-author" label="Author"><Input id="f-author" required maxLength={200} placeholder="Name on the post" value={f.author} onChange={set("author")} /></Field>
             <Field id="f-text" label="Post text"><Textarea id="f-text" required maxLength={20000} placeholder="Paste the post" className="min-h-28" value={f.text} onChange={set("text")} /></Field>
             {verdict && (
-              <div className={cn("grid gap-1.5 rounded-xl border p-3 text-sm", verdict.match ? "bg-good/10" : "bg-late/10")}>
+              <div className={cn("grid gap-1.5 rounded-2xl p-4 text-sm text-ink [&_*]:text-ink", verdict.match ? "bg-mint" : "bg-rose")}>
                 <div className="flex items-center gap-3 font-medium">
                   {verdict.match ? `Real buyer · ${verdict.kind}` : "Not a buyer"}
                   {verdict.match && <PriorityLabel priority={verdict.priority} />}
@@ -84,7 +84,7 @@ export function AddLeadDialog() {
                 <p className="text-text-2">{verdict.reason}</p>
               </div>
             )}
-            {error && <p className="text-sm text-late" role="alert">{error}</p>}
+            {error && <p className="text-sm text-foreground" role="alert">{error}</p>}
           </fieldset>
           <DialogFooter>
             <Button type="button" variant="secondary" disabled={!!busy} onClick={(e) => check(e.currentTarget.form)}>

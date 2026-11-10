@@ -48,7 +48,7 @@ export default function ResultsPage() {
   return (
     <div className="mx-auto grid max-w-[1120px] gap-7 px-5 py-6 lg:px-10 lg:py-10">
       <header className="grid gap-1.5">
-        <h1 className="font-heading text-[40px] leading-none font-normal tracking-[-0.02em]">Insights</h1>
+        <h1 className="font-heading text-[40px] leading-none font-bold tracking-[-0.03em]">Insights</h1>
         <p className="text-sm text-muted-foreground">The last {DAYS} days. Similar posts count once.</p>
       </header>
 
@@ -58,22 +58,22 @@ export default function ResultsPage() {
         </div>
       ) : (
         <>
-          {live === "off" && <p role="alert" className="rounded-xl border bg-late/5 p-4 text-sm">Showing the last loaded numbers. The database connection is unavailable.</p>}
+          {live === "off" && <p role="alert" className="rounded-xl border bg-rose text-ink border-transparent p-4 text-sm">Showing the last loaded numbers. The database connection is unavailable.</p>}
 
           <StatStrip items={[
-            { label: "Leads found", value: r.all.length, note: reposts ? `${reposts} reposts merged` : undefined },
-            { label: "Replied", value: `${pct(r.engaged.length, r.all.length)}%`, note: `${r.engaged.length} of ${r.all.length} leads` },
-            { label: "Typical reply time", value: r.median === null ? "–" : fmtDur(r.median), note: "Median, found to replied" },
-            { label: "Won", value: r.won, note: r.engaged.length ? `${pct(r.won, r.engaged.length)}% of replied leads` : "No replies yet" },
+            { label: "Leads found", value: r.all.length, accent: "gold", note: reposts ? `${reposts} reposts merged` : undefined },
+            { label: "Replied", value: `${pct(r.engaged.length, r.all.length)}%`, accent: "mint", note: `${r.engaged.length} of ${r.all.length} leads` },
+            { label: "Typical reply time", value: r.median === null ? "–" : fmtDur(r.median), accent: "sky", note: "Median, found to replied" },
+            { label: "Won", value: r.won, accent: r.won ? "lilac" : undefined, note: r.engaged.length ? `${pct(r.won, r.engaged.length)}% of replied leads` : "No replies yet" },
           ]} />
 
           <section className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
             <div className="grid gap-6 rounded-2xl border bg-card p-6">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h2 className="font-heading text-2xl font-normal tracking-[-0.01em]">Leads per day</h2>
+                <h2 className="font-heading text-2xl font-bold tracking-[-0.03em]">Leads per day</h2>
                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1.5"><span className="size-2 rounded-sm bg-clay" />Hot</span>
-                  <span className="flex items-center gap-1.5"><span className="size-2 rounded-sm bg-chart-3" />Warm or cold</span>
+                  <span className="flex items-center gap-1.5"><span className="size-2 rounded-sm bg-gold" />Hot</span>
+                  <span className="flex items-center gap-1.5"><span className="size-2 rounded-sm bg-chart-1" />Warm or cold</span>
                 </div>
               </div>
               <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3">
@@ -86,8 +86,8 @@ export default function ResultsPage() {
                     {r.days.map((d) => (
                       <div key={d.key} className="flex h-full flex-1 flex-col justify-end" title={`${d.key}: ${d.total} leads, ${d.hot} hot`}>
                         <div className="flex flex-col overflow-hidden rounded-t-[3px]" style={{ height: `${(100 * d.total) / r.maxDay}%` }}>
-                          <div className="bg-clay" style={{ flexBasis: `${pct(d.hot, d.total)}%` }} />
-                          <div className="flex-1 bg-chart-3" />
+                          <div className="bg-gold" style={{ flexBasis: `${pct(d.hot, d.total)}%` }} />
+                          <div className="flex-1 bg-chart-1" />
                         </div>
                       </div>
                     ))}
@@ -104,7 +104,7 @@ export default function ResultsPage() {
 
             <div className="grid content-start gap-6 rounded-2xl border bg-card p-6">
               <div className="grid gap-4">
-                <h2 className="font-heading text-2xl font-normal tracking-[-0.01em]">Pipeline</h2>
+                <h2 className="font-heading text-2xl font-bold tracking-[-0.03em]">Pipeline</h2>
                 <ul className="grid gap-3.5">
                   {STATUSES.map((s) => {
                     const n = r.all.filter((l) => l.status === s).length;
@@ -126,13 +126,13 @@ export default function ResultsPage() {
 
           <section className="grid gap-4 rounded-2xl border bg-card p-6">
             <div className="grid gap-1">
-              <h2 className="font-heading text-2xl font-normal tracking-[-0.01em]">Which searches find buyers</h2>
+              <h2 className="font-heading text-2xl font-bold tracking-[-0.03em]">Which searches find buyers</h2>
               <p className="text-sm text-muted-foreground">Leads from before 3 Nov don&apos;t record their search, so they are grouped as earlier leads.</p>
             </div>
             <div className="-mx-6 overflow-x-auto px-6">
               <table className="w-full min-w-[560px] text-sm">
                 <thead>
-                  <tr className="border-b text-left text-[13px] text-muted-foreground">
+                  <tr className="eyebrow border-b text-left">
                     <th className="py-2.5 pr-4 font-normal">Search</th>
                     <th className="py-2.5 pr-4 text-right font-normal">Leads</th>
                     <th className="py-2.5 pr-4 text-right font-normal">Hot</th>
@@ -161,7 +161,7 @@ export default function ResultsPage() {
 function Tally({ title, rows }: { title: string; rows: (string | number)[][] }) {
   return (
     <dl className="grid content-start gap-2">
-      <dt className="text-[13px] text-muted-foreground">{title}</dt>
+      <dt className="eyebrow">{title}</dt>
       {rows.map(([name, n]) => (
         <dd key={name} className="flex justify-between text-sm"><span className="text-text-2">{name}</span><span className="font-mono tabular">{n}</span></dd>
       ))}

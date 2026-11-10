@@ -33,7 +33,7 @@ const fmtTime = (ms: number) => new Date(ms).toLocaleTimeString("en-GB", { hour:
 export function PriorityLabel({ priority }: { priority: Priority }) {
   return (
     <span className="inline-flex items-center gap-1.5 text-[13px] font-medium capitalize text-text-2">
-      <span className={cn("size-2 rounded-full", DOT[priority])} aria-hidden />
+      <span className={cn("size-2 rounded-[3px] ring-1 ring-ink/30", DOT[priority])} aria-hidden />
       {priority}
     </span>
   );
@@ -46,7 +46,7 @@ function leadClock(l: Lead, now: number): { text: string; tone: "soon" | "late" 
   const left = Date.parse(l.foundAt) + SLA_MS - now;
   return left >= 0 ? { text: `${fmtShort(left)} left`, tone: "soon" } : { text: `Overdue ${fmtShort(left)}`, tone: "late" };
 }
-const TONE = { soon: "text-clay-ink", late: "text-late", quiet: "text-muted-foreground" };
+const TONE = { soon: "font-medium", late: "rounded-full bg-rose px-2 font-medium text-ink", quiet: "text-muted-foreground" };
 
 export function LeadRow({ lead: l, reposts, selected, onSelect, index, intro }: {
   lead: Lead; reposts: Lead[]; selected: boolean; onSelect: () => void; index: number; intro: boolean;
@@ -58,13 +58,13 @@ export function LeadRow({ lead: l, reposts, selected, onSelect, index, intro }: 
   return (
     <li className={cn(intro && "rise")} style={intro ? ({ "--i": Math.min(index, 8) } as React.CSSProperties) : undefined}>
       <button type="button" id={`row-${l.id}`} onClick={onSelect} aria-current={selected ? "true" : undefined}
-        className={cn("grid w-full grid-cols-[auto_minmax(0,1fr)_auto] gap-x-3 gap-y-1 rounded-xl px-3.5 py-3 text-left transition-colors duration-150 hover:bg-secondary/60",
-          selected && "bg-card shadow-[0_0_0_1px_var(--border),0_1px_2px_rgb(0_0_0/0.05)] hover:bg-card")}>
-        <span className={cn("mt-[7px] size-2 rounded-full", DOT[l.priority])} aria-hidden />
+        className={cn("grid w-full grid-cols-[auto_minmax(0,1fr)_auto] gap-x-3 gap-y-1 rounded-2xl px-3.5 py-3 text-left transition-colors duration-150 hover:bg-secondary",
+          selected && "bg-gold text-ink shadow-[inset_0_0_0_1px_#111111] hover:bg-gold")}>
+        <span className={cn("mt-[7px] size-2 rounded-[3px] ring-1 ring-ink/30", DOT[l.priority])} aria-hidden />
         <span className="truncate text-sm font-medium">{l.author}</span>
-        <span className={cn("font-mono text-xs leading-6 tabular", TONE[clock.tone])}>{clock.text}</span>
-        <span className="col-span-2 col-start-2 line-clamp-2 text-[13px] leading-5 text-text-2">{l.why}</span>
-        <span className="col-span-2 col-start-2 font-mono text-[11px] text-muted-foreground">{meta.join(" · ")}</span>
+        <span className={cn("self-start text-xs leading-5 tabular", TONE[clock.tone], selected && clock.tone === "quiet" && "text-ink")}>{clock.text}</span>
+        <span className={cn("col-span-2 col-start-2 line-clamp-2 text-[13px] leading-5", selected ? "text-ink" : "text-text-2")}>{l.why}</span>
+        <span className={cn("col-span-2 col-start-2 text-[11px]", selected ? "text-ink" : "text-muted-foreground")}>{meta.join(" · ")}</span>
       </button>
     </li>
   );
@@ -78,26 +78,26 @@ function ReplyRuler({ lead, now }: { lead: Lead; now: number }) {
   const late = left < 0;
   const used = Math.max(0, Math.min(1, 1 - left / SLA_MS));
   return (
-    <section aria-label="Reply clock" className="grid gap-3 rounded-2xl border bg-card p-5">
+    <section aria-label="Reply clock" className={cn("grid gap-3 rounded-2xl p-5 text-ink", late ? "bg-rose" : "bg-gold")}>
       <div className="flex flex-wrap items-baseline justify-between gap-x-4">
-        <p className="text-sm text-text-2">{late ? "Past the 2-hour target" : `Reply by ${fmtTime(found + SLA_MS)}`}</p>
-        <p className={cn("font-mono text-sm tabular", late ? "text-late" : "text-clay-ink")}>{late ? `Overdue ${fmtDur(left)}` : `${fmtDur(left)} left`}</p>
+        <p className="font-heading text-xl font-bold tracking-[-0.03em]">{late ? "Past the 2-hour target" : `Reply by ${fmtTime(found + SLA_MS)}`}</p>
+        <p className="text-sm font-medium tabular">{late ? `Overdue ${fmtDur(left)}` : `${fmtDur(left)} left`}</p>
       </div>
       <div className="relative h-5" role="img" aria-label={late ? `Overdue by ${fmtDur(left)}` : `${fmtDur(left)} of the 2-hour target left`}>
-        <span className="absolute inset-x-0 top-0 h-1.5 overflow-hidden rounded-full bg-secondary">
-          <span className={cn("block h-full origin-left rounded-full transition-transform duration-1000 ease-[var(--ease-snap)]", late ? "bg-late" : "bg-clay")} style={{ transform: `scaleX(${used})` }} />
+        <span className="absolute inset-x-0 top-0 h-1.5 overflow-hidden rounded-full bg-ink/15">
+          <span className={cn("block h-full origin-left rounded-full transition-transform duration-1000 ease-[var(--ease-snap)] bg-ink")} style={{ transform: `scaleX(${used})` }} />
         </span>
         {[0, 25, 50, 75, 100].map((p) => (
-          <span key={p} className="absolute bottom-0 w-px bg-line" style={{ left: `${p}%`, height: p % 50 === 0 ? 11 : 6, transform: p === 100 ? "translateX(-1px)" : undefined }} />
+          <span key={p} className="absolute bottom-0 w-px bg-ink/40" style={{ left: `${p}%`, height: p % 50 === 0 ? 11 : 6, transform: p === 100 ? "translateX(-1px)" : undefined }} />
         ))}
       </div>
-      <div className="flex justify-between font-mono text-[11px] text-muted-foreground tabular"><span>Found {fmtTime(found)}</span><span>{fmtTime(found + SLA_MS / 2)}</span><span>{fmtTime(found + SLA_MS)}</span></div>
+      <div className="flex justify-between text-[11px] tabular"><span>Found {fmtTime(found)}</span><span>{fmtTime(found + SLA_MS / 2)}</span><span>{fmtTime(found + SLA_MS)}</span></div>
     </section>
   );
 }
 
 function Kbd({ children }: { children: string }) {
-  return <kbd className="ml-1 hidden rounded border border-current/25 px-1 font-mono text-[10px] leading-4 opacity-60 lg:inline">{children}</kbd>;
+  return <kbd className="ml-1 hidden rounded border border-current/25 px-1 text-[10px] leading-4 opacity-70 lg:inline">{children}</kbd>;
 }
 
 export type DetailActions = { copy: () => void; markReplied: () => void };
@@ -157,16 +157,16 @@ export function LeadDetail({ lead: l, reposts, onBack, actionsRef }: {
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="quiet-scroll min-h-0 flex-1 overflow-y-auto">
-        <article className="mx-auto grid max-w-[760px] gap-9 px-5 py-6 lg:px-10 lg:py-10">
+        <article className="mx-auto grid max-w-[720px] gap-8 px-5 py-6 lg:px-9 lg:py-9">
           <header className="grid gap-4">
             <Button variant="ghost" size="sm" className="-ml-2 w-fit text-muted-foreground lg:hidden" onClick={onBack}><ArrowLeft /> Inbox</Button>
-            <p className="flex flex-wrap items-center gap-x-2.5 gap-y-1 font-mono text-xs text-muted-foreground">
+            <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
               <span>{PLATFORMS[l.platform] ?? l.platform}</span><span aria-hidden>·</span>
               <span className="capitalize">{l.kind}</span><span aria-hidden>·</span>
               <span>{SOURCE_LABEL[l.source]}</span>
               {found && <><span aria-hidden>·</span><span>{found}</span></>}
             </p>
-            <h2 className="font-heading text-[34px] leading-[1.1] font-normal tracking-[-0.02em] [overflow-wrap:anywhere] lg:text-[40px]">{l.author}</h2>
+            <h2 className="font-heading text-[34px] leading-[1.1] font-bold tracking-[-0.03em] [overflow-wrap:anywhere] lg:text-[40px]">{l.author}</h2>
             <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
               <PriorityLabel priority={l.priority} />
               <Stage status={l.status} busy={busy} onChange={setStatus} />
@@ -176,10 +176,10 @@ export function LeadDetail({ lead: l, reposts, onBack, actionsRef }: {
           <ReplyRuler lead={l} now={now} />
 
           {(l.status === "replied" || l.status === "talking") && (
-            <section className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-card p-5">
+            <section className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-secondary p-5">
               <div>
-                <h3 className="text-sm font-medium">Follow-up</h3>
-                <p className={cn("mt-0.5 text-[13px]", followUpDue ? "text-late" : "text-muted-foreground")}>{followUpDue ? "A follow-up is due" : l.followUp ? "Scheduled" : "Pick a day to follow up"}</p>
+                <h3 className="eyebrow">Follow-up</h3>
+                <p className={cn("mt-0.5 text-[13px]", followUpDue ? "text-foreground" : "text-muted-foreground")}>{followUpDue ? "A follow-up is due" : l.followUp ? "Scheduled" : "Pick a day to follow up"}</p>
               </div>
               <Input type="date" aria-label={`Follow-up date for ${l.author}`} value={l.followUp ?? ""} disabled={busy} className="w-44"
                 onChange={async (e) => { const v = e.target.value; setBusy(true); await patch(l.id, { followUp: v || null }, v ? "Follow-up scheduled" : "Follow-up cleared"); setBusy(false); }} />
@@ -187,9 +187,12 @@ export function LeadDetail({ lead: l, reposts, onBack, actionsRef }: {
           )}
 
           <section className="grid gap-3">
-            <h3 className="text-sm font-medium">The post</h3>
-            {closed && <p className="flex items-start gap-2 text-[13px] leading-5 text-late"><CircleAlert className="mt-0.5 size-4 shrink-0" strokeWidth={1.5} /> This post may be closed. Check the original before reaching out.</p>}
-            {l.excerpt ? <p className="rounded-2xl border bg-card p-5 text-[15px] leading-7 text-text-2 [overflow-wrap:anywhere]">{l.excerpt}</p> : <p className="text-sm text-muted-foreground">No text was saved for this post.</p>}
+            <h3 className="eyebrow">The post</h3>
+            {closed && <p className="flex items-start gap-2 text-[13px] leading-5 text-foreground"><CircleAlert className="mt-0.5 size-4 shrink-0" strokeWidth={1.5} /> This post may be closed. Check the original before reaching out.</p>}
+            <div className="grid gap-4 rounded-2xl bg-secondary p-5">
+              {l.excerpt ? <p className="text-[15px] leading-7 [overflow-wrap:anywhere]">{l.excerpt}</p> : <p className="text-sm text-muted-foreground">No text was saved for this post.</p>}
+              <p className="border-t pt-4 text-[13px] leading-5 text-text-2"><b className="font-medium text-foreground">Why it matches.</b> {l.why}</p>
+            </div>
             {reposts.length > 0 && (
               <p className="text-[13px] leading-5 text-muted-foreground">
                 Also shared by {reposts.map((r, i) => <span key={r.id}>{i > 0 && ", "}<a href={r.url} target="_blank" rel="noopener noreferrer" className="underline decoration-line underline-offset-4 transition-colors hover:text-foreground">{r.author}</a></span>)}.
@@ -197,14 +200,9 @@ export function LeadDetail({ lead: l, reposts, onBack, actionsRef }: {
             )}
           </section>
 
-          <section className="grid gap-2">
-            <h3 className="text-sm font-medium">Why it matches</h3>
-            <p className="text-[15px] leading-7 text-text-2">{l.why}</p>
-          </section>
-
           <section className="grid gap-3">
             <div className="flex items-baseline justify-between gap-3">
-              <label htmlFor={`reply-${l.id}`} className="text-sm font-medium">Draft reply</label>
+              <label htmlFor={`reply-${l.id}`} className="eyebrow">Draft reply</label>
               <span className="text-xs text-muted-foreground" role="status">{saved}</span>
             </div>
             <Textarea id={`reply-${l.id}`} value={reply} maxLength={4000} disabled={busy} placeholder="Write a reply that names what they need and invites them to talk."
@@ -217,7 +215,7 @@ export function LeadDetail({ lead: l, reposts, onBack, actionsRef }: {
           </section>
 
           <section className="grid gap-3">
-            <label htmlFor={`notes-${l.id}`} className="text-sm font-medium">Notes</label>
+            <label htmlFor={`notes-${l.id}`} className="eyebrow">Notes</label>
             <Textarea id={`notes-${l.id}`} value={notes} maxLength={4000} disabled={busy} placeholder="Who you spoke to, what they need, the next step."
               className="min-h-24 resize-y text-sm leading-6"
               onChange={(e) => { setNotes(e.target.value); dirty.current.notes = true; setSaved("Unsaved changes"); }} />
@@ -226,7 +224,7 @@ export function LeadDetail({ lead: l, reposts, onBack, actionsRef }: {
         </article>
       </div>
 
-      <footer className="flex flex-wrap items-center gap-2 border-t bg-background px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:px-10">
+      <footer className="flex flex-wrap items-center gap-2 border-t bg-card px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:px-10">
         <Button onClick={copyReply} disabled={!reply || busy}><Copy strokeWidth={1.5} /> Copy reply <Kbd>C</Kbd></Button>
         <Button variant="outline" asChild><a href={l.url} target="_blank" rel="noopener noreferrer">Open post <ArrowUpRight strokeWidth={1.5} /></a></Button>
         {l.status === "new" && <Button variant="ghost" className="ml-auto" disabled={busy} onClick={() => setStatus("replied")}><Check strokeWidth={1.5} /> Mark replied <Kbd>E</Kbd></Button>}
@@ -239,19 +237,19 @@ export function LeadDetail({ lead: l, reposts, onBack, actionsRef }: {
 function Stage({ status, busy, onChange }: { status: Status; busy: boolean; onChange: (s: Status) => void }) {
   const off = status === "lost" || status === "skipped";
   return (
-    <div role="group" aria-label="Stage" className="flex w-full items-center gap-0.5 rounded-xl bg-secondary p-1 sm:w-auto">
+    <div role="group" aria-label="Stage" className="flex w-full items-center gap-0.5 rounded-full bg-accent p-1 sm:w-auto">
       {STEPS.map((s) => (
         <button key={s} type="button" disabled={busy} aria-pressed={status === s} onClick={() => onChange(s)}
-          className={cn("h-8 flex-1 rounded-lg px-3 text-[13px] text-muted-foreground transition-[background-color,color,box-shadow] duration-150 ease-[var(--ease-snap)] hover:text-foreground disabled:opacity-60 sm:flex-none",
-            status === s && "bg-card font-medium text-foreground shadow-[0_0_0_1px_var(--border),0_1px_2px_rgb(0_0_0/0.08)]")}>
+          className={cn("h-8 flex-1 rounded-full px-3.5 text-[13px] text-text-2 transition-[background-color,color] duration-300 ease-[var(--ease-snap)] hover:text-foreground disabled:opacity-60 sm:flex-none",
+            status === s && "bg-gold font-medium text-ink shadow-[inset_0_0_0_1px_#111111] hover:text-ink")}>
           {STEP_LABEL[s]}
         </button>
       ))}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button type="button" disabled={busy} aria-label="More stages" aria-pressed={off}
-            className={cn("grid h-8 min-w-8 place-items-center rounded-lg px-2 text-[13px] text-muted-foreground transition-[background-color,color,box-shadow] duration-150 hover:text-foreground disabled:opacity-60",
-              off && "bg-card font-medium text-foreground shadow-[0_0_0_1px_var(--border),0_1px_2px_rgb(0_0_0/0.08)]")}>
+            className={cn("grid h-8 min-w-8 place-items-center rounded-full px-2 text-[13px] text-text-2 transition-[background-color,color] duration-300 hover:text-foreground disabled:opacity-60",
+              off && "bg-gold font-medium text-ink shadow-[inset_0_0_0_1px_#111111]")}>
             {off ? STATUS_LABEL[status] : <Ellipsis className="size-4" strokeWidth={1.5} />}
           </button>
         </DropdownMenuTrigger>

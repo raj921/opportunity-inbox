@@ -57,6 +57,21 @@ class ScannerTests(unittest.TestCase):
             self.assertEqual(inbox.main(), 1)
             self.assertEqual(json.loads(inbox.STATE.read_text()), {'last_run': 0, 'seen': [inbox.lead_id('a')]})
 
+    def test_auto_comment_is_opt_in_capped_and_never_fails_the_run(self):
+        posts = [inbox.linkedin_post({'linkedinUrl': f'https://linkedin.com/{i}', 'content': 'need an app', 'shareUrn': f'urn:li:share:{i}'}) for i in range(12)]
+        posts.append(inbox.x_post({'url': 'https://x.com/a/status/1', 'text': 'need an app'}))
+        verdict = {'match': True, 'kind': 'product', 'reason': '', 'reply': 'We can help, DM us.'}
+        with patch.object(inbox, 'fetch_posts', return_value=(posts, 0)), patch.object(inbox, 'classify', return_value=verdict), \
+                patch.object(inbox, 'notify'), patch.object(inbox, 'comment') as comment:
+            inbox.main()
+            comment.assert_not_called()  # off by default
+            inbox.STATE.unlink()
+            inbox.ENV['AUTO_COMMENT'] = '1'
+            comment.side_effect = [RuntimeError('LinkedIn down')] + [None] * 20
+            self.assertEqual(inbox.main(), 0)  # a failed comment never fails the scan
+        self.assertEqual(comment.call_count, inbox.MAX_COMMENTS + 1)  # one failure, then the cap; X posts are skipped
+        self.assertEqual(comment.call_args_list[1].args[1:], ('urn:li:share:1', 'We can help, DM us.'))
+
     def test_one_network_failure_preserves_other_posts_and_health(self):
         def actor(name, run_input):
             if name.startswith('xquik'):

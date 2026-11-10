@@ -1,0 +1,149 @@
+{
+ "date": "6 Nov 2026",
+ "runs": [
+  {
+   "label": "AI-only rule",
+   "note": "Local rule, not live. 5 AI buyers in the set.",
+   "total": 52,
+   "correct": 50,
+   "buyers": 5,
+   "caught": 4,
+   "others": 47,
+   "rejected": 46,
+   "replies": [
+    4,
+    4
+   ],
+   "platforms": [
+    {
+     "name": "linkedin",
+     "correct": 24,
+     "total": 26
+    },
+    {
+     "name": "x",
+     "correct": 14,
+     "total": 14
+    },
+    {
+     "name": "reddit",
+     "correct": 12,
+     "total": 12
+    }
+   ],
+   "misses": [
+    {
+     "platform": "linkedin",
+     "expected": "Not a buyer",
+     "got": "Buyer",
+     "post": "🚀 New Contract position: Request for Proposal Independent Red Teaming and AI Safety Evaluation Open Competitiv",
+     "reason": "Public RFP from Girl Effect seeking an independent partner for AI red teaming and safety evaluation of the WAZZII generative AI chatbot; a real buying"
+    },
+    {
+     "platform": "linkedin",
+     "expected": "Buyer",
+     "got": "Not a buyer",
+     "post": "10 million manuscripts. Nearly a billion images. An extraordinary opportunity for AI innovation! #GyanBharatam",
+     "reason": "Promotional post about a government digitisation initiative with no explicit current buying request for AI workshops or products from the author."
+    }
+   ]
+  },
+  {
+   "label": "Live rule",
+   "note": "All app and platform builds count as buyers.",
+   "total": 44,
+   "correct": 39,
+   "buyers": 13,
+   "caught": 9,
+   "others": 31,
+   "rejected": 30,
+   "replies": [
+    7,
+    9
+   ],
+   "platforms": [
+    {
+     "name": "linkedin",
+     "correct": 16,
+     "total": 18
+    },
+    {
+     "name": "x",
+     "correct": 12,
+     "total": 14
+    },
+    {
+     "name": "reddit",
+     "correct": 11,
+     "total": 12
+    }
+   ],
+   "misses": [
+    {
+     "platform": "linkedin",
+     "expected": "Not a buyer",
+     "got": "Buyer",
+     "post": "🚀 New Contract position: Request for Proposal Independent Red Teaming and AI Safety Evaluation Open Competitiv",
+     "reason": "Public RFP from Girl Effect seeking an independent partner for red teaming and AI safety evaluation of its WAZZII chatbot; a real buying request, but "
+    },
+    {
+     "platform": "x",
+     "expected": "Buyer",
+     "got": "Not a buyer",
+     "post": "Looking for an app developer for @Studio42Group - drop me a message if that's you!",
+     "reason": "Author seeks an app developer but the post gives no AI workshop or AI product scope and no details; not clearly an AI product request."
+    },
+    {
+     "platform": "x",
+     "expected": "Buyer",
+     "got": "Not a buyer",
+     "post": "Looking for an app developer, if you're good dm me ASAP!",
+     "reason": "Author seeks an app developer but gives no AI connection, scope, budget, or deadline, so it is not a clear request for an AI workshop or AI-powered pr"
+    },
+    {
+     "platform": "reddit",
+     "expected": "Buyer",
+     "got": "Not a buyer",
+     "post": "Outsourcing app development — worried about source code theft I’m planning to outsource the complete developme",
+     "reason": "Author is seeking advice on outsourcing risks and safeguards, not an explicit current buying request for a workshop, training, or product from us."
+    },
+    {
+     "platform": "linkedin",
+     "expected": "Buyer",
+     "got": "Not a buyer",
+     "post": "10 million manuscripts. Nearly a billion images. An extraordinary opportunity for AI innovation! #GyanBharatam",
+     "reason": "Promotional post about the GyanBharatam manuscript initiative with no explicit current buying request or RFP shown in the excerpt; it is a generic opp"
+    }
+   ]
+  }
+ ],
+ "sources": [
+  {
+   "name": "linkedin",
+   "status": "SUCCEEDED",
+   "secs": 15.8,
+   "posts": 32,
+   "bad": 0,
+   "unique": 32,
+   "leads": 1
+  },
+  {
+   "name": "x",
+   "status": "SUCCEEDED",
+   "secs": 13.4,
+   "posts": 4,
+   "bad": 0,
+   "unique": 4,
+   "leads": 2
+  },
+  {
+   "name": "reddit",
+   "status": "SUCCEEDED",
+   "secs": 14.0,
+   "posts": 30,
+   "bad": 0,
+   "unique": 30,
+   "leads": 1
+  }
+ ]
+}

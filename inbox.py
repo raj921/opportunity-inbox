@@ -40,8 +40,8 @@ QUERIES = [
 ]
 MAX_POSTS_PER_QUERY = 25
 
-# X search: exact phrases only. A loose OR query returned only AI chatter in testing; exact phrases found 5 buyers in 10 posts,
-# but they are rare (about 1-2 a month per phrase), so there are several. xquik charges only for posts returned.
+# X search: exact phrases first, because they find buyers but are rare (about 1-2 a month each). The LinkedIn searches follow for reach;
+# they are noisier, so the classifier filters them. X writes NOT as a leading minus. xquik charges only for posts returned.
 X_QUERIES = [
     '"need an app developer"',
     '"looking for an app developer"',
@@ -51,7 +51,7 @@ X_QUERIES = [
     '"recommend an AI consultant"',
     '"AI workshop for our team"',
     '"AI training for our team"',
-]
+] + [q.replace("NOT ", "-") for q in QUERIES]
 X_MAX_POSTS = 100  # bounded across all phrases; current pricing is set by the actor
 REDDIT_QUERIES = ['"looking for" "app developer"', '"AI training" "team"', '"looking for" "development partner"']
 WINDOW_SECONDS = {"1h": 3600, "24h": 86400, "week": 7 * 86400}
@@ -149,7 +149,7 @@ def fetch_posts(limit, now, reports=None):
 
 def linkedin_post(p):
     return {"platform": "linkedin", "url": p.get("linkedinUrl"), "author": (p.get("author") or {}).get("name") or "unknown",
-            "text": p.get("content") or "", "query": (p.get("query") or {}).get("search")}
+            "text": p.get("content") or "", "query": (p.get("query") or {}).get("search"), "urn": p.get("shareUrn")}
 
 
 def x_post(t):
@@ -220,6 +220,23 @@ def notify(url, author, verdict, post_text="", query=None, platform="linkedin"):
             f.write(f"- {time.strftime('%F %H:%M')} {text}\n\n")
 
 
+MAX_COMMENTS = 10  # per run; keeps the LinkedIn account clear of spam limits
+
+
+def comment(lead, urn, reply):
+    """Post the draft reply as a LinkedIn comment through Composio, then mark the lead replied."""
+    r = requests.post("https://backend.composio.dev/api/v3.1/tools/execute/LINKEDIN_CREATE_COMMENT_ON_POST",
+                      headers={"x-api-key": ENV["COMPOSIO_API_KEY"]}, timeout=30,
+                      json={"user_id": ENV["COMPOSIO_USER_ID"], "arguments": {
+                          "actor": ENV["LINKEDIN_ACTOR"], "object": urn, "target_urn": urn, "message": {"text": reply}}})
+    r.raise_for_status()
+    if not r.json().get("successful"):
+        raise RuntimeError(f"Composio comment failed: {r.json().get('error')}")
+    if ENV.get("DATABASE_URL"):
+        with psycopg.connect(ENV["DATABASE_URL"]) as db:
+            db.execute("update leads set status = 'replied', status_at = now(), replied_at = coalesce(replied_at, now()) where id = %s and status = 'new'", (lead,))
+
+
 def main():
     if not ENV.get("DATABASE_URL") and ENV.get("LOCAL_ONLY") != "1":
         raise RuntimeError("DATABASE_URL is required before scanning; no posts have been marked seen.")
@@ -230,7 +247,7 @@ def main():
     state = json.loads(STATE.read_text()) if STATE.exists() else {"last_run": 0, "seen": []}
     seen = dict.fromkeys(lead_id(u) if u.startswith("http") else u for u in state["seen"])
     claude = anthropic.Anthropic(api_key=ENV["ANTHROPIC_API_KEY"])
-    leads = 0
+    leads = comments = 0
     ok = False
     reports = {}
     failed = 1
@@ -245,6 +262,14 @@ def main():
                 if verdict.get("match"):
                     notify(url, author, verdict, text, post["query"], post["platform"])
                     leads += 1
+                    # Off unless AUTO_COMMENT=1. A failed comment leaves the lead waiting for a person, never retried.
+                    if ENV.get("AUTO_COMMENT") == "1" and (post.get("urn") or "").startswith(("urn:li:share:", "urn:li:ugcPost:")) \
+                            and verdict.get("reply") and comments < MAX_COMMENTS:
+                        try:
+                            comment(lead_id(url), post["urn"], verdict["reply"])
+                            comments += 1
+                        except Exception as e:
+                            print(f"{time.strftime('%F %T')} comment failed on {url}: {e!r}", file=sys.stderr)
                     if post["platform"] in reports:
                         reports[post["platform"]]["leads"] += 1
             except Exception as e:  # one bad post (Claude/Slack/Sheet down) must not stop the rest
@@ -262,7 +287,7 @@ def main():
             json.dump({"last_run": now if ok else state["last_run"], "seen": list(seen)[-5000:]}, f)
         os.replace(f.name, STATE)
         record_health(reports)
-    print(f"{time.strftime('%F %T')} leads={leads} failed={failed} seen={len(seen)}")
+    print(f"{time.strftime('%F %T')} leads={leads} comments={comments} failed={failed} seen={len(seen)}")
     return failed
 
 
@@ -277,8 +302,8 @@ if __name__ == "__main__":
         assert lead_id("https://x.com/steve/status/1985123456789012345?s=20") == "x_1985123456789012345"
         assert lead_id("https://twitter.com/steve/status/1985123456789012345") == "x_1985123456789012345"
         assert lead_id("https://example.com/p/1") == "url_1oa81w1"  # matches leadId() in web/lib/lead-utils.ts
-        assert linkedin_post({"linkedinUrl": "u", "author": {"name": "A"}, "content": "c", "query": {"search": "q"}}) == \
-            {"platform": "linkedin", "url": "u", "author": "A", "text": "c", "query": "q"}
+        assert linkedin_post({"linkedinUrl": "u", "author": {"name": "A"}, "content": "c", "query": {"search": "q"}, "shareUrn": "urn:li:share:1"}) == \
+            {"platform": "linkedin", "url": "u", "author": "A", "text": "c", "query": "q", "urn": "urn:li:share:1"}
         assert x_post({"url": "u", "author": {"userName": "a"}, "fullText": "t"})["author"] == "a"
         assert linkedin_post({})["author"] == "unknown"
         # LinkedIn rejects a query with more than 5 OR/AND/NOT operators
