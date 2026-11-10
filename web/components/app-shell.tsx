@@ -4,8 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useTheme } from "next-themes";
-import { BarChart3, Bell, CalendarClock, FlaskConical, Inbox, Monitor, Moon, Radio, Sun } from "lucide-react";
+import { BarChart3, Bell, CalendarClock, FlaskConical, Inbox, Radio } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -48,7 +47,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="mt-auto grid gap-3 px-2">
           <ScanStatus />
           <div className="-mx-1 flex items-center justify-between border-t border-sidebar-border pt-3">
-            <ThemeMenu />
             <AlertsButton />
           </div>
         </div>
@@ -57,7 +55,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div className="min-w-0 pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
         <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-card/90 px-4 backdrop-blur md:hidden">
           <Wordmark />
-          <div className="flex items-center"><AlertsButton /><ThemeMenu compact /></div>
+          <AlertsButton />
         </header>
         <main id="main-content" className="min-w-0">{children}</main>
       </div>
@@ -79,8 +77,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 // The official logo. It has no dark version, so dark mode puts it in a white holder.
 function Wordmark() {
   return (
-    <Link href="/" className="w-fit rounded-xl dark:bg-white dark:px-1.5 dark:py-0.5" aria-label="Futurelab Studios, Opportunity Inbox home">
-      <Image src="/brand/logos/futurelab-logo-primary-1200.png" alt="Futurelab Studios" width={1200} height={300} priority className="-my-1 -ml-2 h-[52px] w-auto dark:my-0 dark:ml-0 dark:h-9" />
+    <Link href="/" className="w-fit rounded-xl" aria-label="Futurelab Studios, Opportunity Inbox home">
+      <Image src="/brand/logos/futurelab-logo-primary-1200.png" alt="Futurelab Studios" width={1200} height={300} priority className="-my-1 -ml-2 h-[52px] w-auto" />
     </Link>
   );
 }
@@ -98,27 +96,6 @@ function ScanStatus() {
   );
 }
 
-function ThemeMenu({ compact }: { compact?: boolean }) {
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-  const Icon = !mounted ? Monitor : theme === "dark" ? Moon : theme === "light" ? Sun : Monitor;
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size={compact ? "icon" : "sm"} className="text-muted-foreground" aria-label="Theme">
-          <Icon className="size-4" strokeWidth={1.5} />
-          {!compact && (mounted ? { dark: "Dark", light: "Light" }[theme ?? ""] ?? "System" : "Theme")}
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start">
-        <DropdownMenuItem onClick={() => setTheme("light")}><Sun strokeWidth={1.5} /> Light</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}><Moon strokeWidth={1.5} /> Dark</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")}><Monitor strokeWidth={1.5} /> System</DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
 
 function AlertsButton() {
   const { alerts, unseen, markSeen, sound, setSound, jumpTo } = useLeads();

@@ -2,7 +2,9 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* Light only. Keeps leftover dark: classes in ui/ inert instead of following the OS setting. */
 @custom-variant dark (&:is(.dark *));
+
 
 @theme inline {
   --font-heading: var(--font-display);
@@ -66,7 +68,6 @@
 /*
   Futurelab Afterhours. Silver canvas, White work areas, flat accent modules that always carry Ink text.
   Accents mark something that needs you; priority and status always come with a word, never colour alone.
-  Dark mode is the Charcoal treatment: Deep canvas, Charcoal panels, Gold lead.
   Earlier layout redesigned with the unslop process by Damir Sokolovsky (@heydamir), CC BY 4.0.
 */
 :root {
@@ -115,43 +116,6 @@
   --ease-snap: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.dark {
-  --background: #191A1C;
-  --foreground: #F5F3EF;
-  --card: #242628;
-  --card-foreground: #F5F3EF;
-  --popover: #242628;
-  --popover-foreground: #F5F3EF;
-  --primary: #F0D679;
-  --primary-foreground: #111111;
-  --secondary: #191A1C;
-  --secondary-foreground: #F5F3EF;
-  --muted: #191A1C;
-  --muted-foreground: #D0D5DB;
-  --accent: rgb(245 243 239 / 0.08);
-  --accent-foreground: #F5F3EF;
-  --destructive: #F49AB1;
-  --border: rgb(245 243 239 / 0.12);
-  --line-strong: rgb(245 243 239 / 0.28);
-  --input: rgb(245 243 239 / 0.16);
-  --ring: #F0D679;
-  --text-2: #D0D5DB;
-  --gold-ink: #F0D679;
-  --chart-1: #F5F3EF;
-  --chart-2: rgb(245 243 239 / 0.12);
-  --chart-3: #D0D5DB;
-  --chart-4: #D0D5DB;
-  --chart-5: #D0D5DB;
-  --sidebar: #191A1C;
-  --sidebar-foreground: #F5F3EF;
-  --sidebar-primary: #F0D679;
-  --sidebar-primary-foreground: #111111;
-  --sidebar-accent: #242628;
-  --sidebar-accent-foreground: #F5F3EF;
-  --sidebar-border: rgb(245 243 239 / 0.12);
-  --sidebar-ring: #F0D679;
-  --lift: none;
-}
 
 @layer base {
   * { @apply border-border outline-ring/50; }
