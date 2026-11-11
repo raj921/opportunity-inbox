@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, ArrowUpRight, CircleAlert } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Check, CircleAlert, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
@@ -25,8 +25,8 @@ export function PriorityLabel({ priority }: { priority: Priority }) {
   );
 }
 
-export function LeadRow({ lead: l, reposts, selected, onSelect, index, intro }: {
-  lead: Lead; reposts: Lead[]; selected: boolean; onSelect: () => void; index: number; intro: boolean;
+export function LeadRow({ lead: l, reposts, selected, onSelect, index, intro, posting }: {
+  lead: Lead; reposts: Lead[]; selected: boolean; onSelect: () => void; index: number; intro: boolean; posting?: boolean;
 }) {
   const meta = [l.priority[0].toUpperCase() + l.priority.slice(1), PLATFORMS[l.platform] ?? l.platform, l.kind[0].toUpperCase() + l.kind.slice(1)];
   if (reposts.length) meta.push(`+${reposts.length} similar`);
@@ -37,7 +37,8 @@ export function LeadRow({ lead: l, reposts, selected, onSelect, index, intro }: 
           selected && "bg-gold text-ink shadow-[inset_0_0_0_1px_#111111] hover:bg-gold")}>
         <span className={cn("mt-[7px] size-2 rounded-[3px] ring-1 ring-ink/30", DOT[l.priority])} aria-hidden />
         <span className="truncate text-sm font-medium">{l.author}</span>
-        <span className={cn("self-start text-xs leading-5", selected ? "text-ink" : "text-muted-foreground")}>{STATUS_LABEL[l.status]}</span>
+        {posting ? <span className="animate-pulse self-start rounded-full bg-mint px-2 text-xs leading-5 font-medium text-ink">Posting</span>
+          : <span className={cn("self-start text-xs leading-5", selected ? "text-ink" : "text-muted-foreground")}>{STATUS_LABEL[l.status]}</span>}
         <span className={cn("col-span-2 col-start-2 line-clamp-2 text-[13px] leading-5", selected ? "text-ink" : "text-text-2")}>{l.why}</span>
         <span className={cn("col-span-2 col-start-2 text-[11px]", selected ? "text-ink" : "text-muted-foreground")}>{meta.join(" · ")}</span>
       </button>
@@ -103,8 +104,8 @@ export function LeadDetail({ lead: l, reposts, onBack }: {
             <h3 className="eyebrow">The post</h3>
             {closed && <p className="flex items-start gap-2 text-[13px] leading-5 text-foreground"><CircleAlert className="mt-0.5 size-4 shrink-0" strokeWidth={1.5} /> This post may be closed. Check the original before reaching out.</p>}
             <div className="grid gap-4 rounded-2xl bg-secondary p-5">
-              {/* {l.excerpt ? <p className="text-[15px] leading-7 [overflow-wrap:anywhere]">{l.excerpt}</p> : <p className="text-sm text-muted-foreground">No text was saved for this post.</p>} */}
-              <p className="text-[13px] leading-5 text-text-2"><b className="font-medium text-foreground">Why it matches.</b> {l.why}</p>
+              {l.excerpt && <p className="text-[15px] leading-7 [overflow-wrap:anywhere]">{l.excerpt}</p>}
+              <p className={cn("text-[13px] leading-5 text-text-2", l.excerpt && "border-t pt-4")}><b className="font-medium text-foreground">Why it matches.</b> {l.why}</p>
             </div>
             {reposts.length > 0 && (
               <p className="text-[13px] leading-5 text-muted-foreground">
@@ -123,14 +124,21 @@ export function LeadDetail({ lead: l, reposts, onBack }: {
               onChange={(e) => { setReply(e.target.value); dirty.current = true; setSaved("Unsaved changes"); }} />
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
               <Button variant="outline" size="sm" disabled={busy || !dirty.current} onClick={saveDraft}>Save draft</Button>
-              <p className="text-xs leading-5 text-muted-foreground">No live accounts or posting</p>
+              <p className="text-xs leading-5 text-muted-foreground">Demo mode: posting is simulated</p>
             </div>
           </section>
         </article>
       </div>
 
       <footer className="flex flex-wrap items-center gap-2 border-t bg-card px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:px-10">
-        <Button variant="outline" asChild><a href={l.url} target="_blank" rel="noopener noreferrer">Open post <ArrowUpRight strokeWidth={1.5} /></a></Button>
+        {l.status === "new" && <Button disabled={busy || !reply} onClick={async () => {
+          setBusy(true);
+          if (await patch(l.id, { reply, status: "replied" }, "Comment posted (demo)")) dirty.current = false;
+          setBusy(false);
+        }}><Send strokeWidth={1.5} /> Post comment</Button>}
+        {l.repliedAt && <p className="flex items-center gap-2 rounded-full bg-mint px-3.5 py-2 text-[13px] font-medium text-ink"><Check className="size-4" strokeWidth={2} /> Comment posted {fmtDay(l.repliedAt)}, {fmtTime(Date.parse(l.repliedAt))}</p>}
+        {/* Demo leads are fictional, so only hand-added posts link out. */}
+        {l.source === "manual" && <Button variant="outline" asChild><a href={l.url} target="_blank" rel="noopener noreferrer">Open post <ArrowUpRight strokeWidth={1.5} /></a></Button>}
       </footer>
     </div>
   );

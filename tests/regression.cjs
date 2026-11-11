@@ -13,11 +13,24 @@ function load(relative, overrides = {}) {
     require: name => {
       if (name in overrides) return overrides[name];
       if (name === '@/lib/lead-utils' || name === './lead-utils') return load('lib/lead-utils.ts');
+      if (name === '@/lib/simulation') return load('lib/simulation.ts');
       return require(name);
     }});
   return exports;
 }
 const u = load('lib/lead-utils.ts');
+{ // Simulated backend: fictional incoming leads are valid, and rebasing keeps the newest lead recent.
+  const sim = load('lib/simulation.ts');
+  assert.ok(sim.INCOMING.length && sim.INCOMING.every(l => u.leadId(l.url) === l.id && ['linkedin','x'].includes(l.platform)));
+  const now = Date.parse('2027-01-20T12:00:00Z');
+  const moved = sim.rebase([{foundAt:'2026-11-10T09:00:00.000Z', statusAt:null, repliedAt:null, followUp:'2026-11-12'}], now);
+  const age = now - Date.parse(moved[0].foundAt);
+  assert.equal(sim.screen('Looking for an AI workshop for our sales team this month').priority, 'hot');
+  assert.equal(sim.screen('Looking for an AI workshop for our sales team this month').kind, 'workshop');
+  assert.equal(sim.screen('Great conference today').priority, 'cold');
+  assert.ok(age >= 2 * 3600e3 && age < 26 * 3600e3 + 1, 'newest lead lands within the last day');
+  assert.equal(moved[0].followUp, new Date(Date.parse(moved[0].foundAt) + 2 * 86400e3 - 9 * 3600e3).toISOString().slice(0, 10));
+}
 assert.equal(u.validDate('2026-02-30'), false);
 assert.equal(u.validDate('2028-02-29'), true);
 assert.equal(u.validDate(['2026-11-03']), false);

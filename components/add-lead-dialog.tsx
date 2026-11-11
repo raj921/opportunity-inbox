@@ -1,5 +1,6 @@
 "use client";
 
+import { screen, sleep } from "@/lib/simulation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
@@ -36,19 +37,20 @@ export function AddLeadDialog() {
     if (!author || !excerpt) return setError("Enter an author and post text.");
     const lead: Lead = {
       id: leadId(url.href), url: url.href, platform, author,
-      kind: "other", priority: "warm", why: "Added manually for review.", reply: "", excerpt,
+      ...screen(excerpt), excerpt,
       query: null, source: "manual", postedDate: null, foundAt: new Date().toISOString(),
       status: "new", statusAt: null, repliedAt: null, followUp: null, notes: "",
     };
     setBusy(true);
     setError("");
     try {
+      await sleep(900); // the demo screener stands in for the AI check
       if (!await add(lead)) {
         setError("This post may already be in the inbox, or it could not be saved.");
         return;
       }
       setOpen(false);
-      toast.success("Lead added", { description: "Ready for your review." });
+      toast.success(lead.kind === "other" ? "Lead added for a manual look" : `Screened: ${lead.priority} ${lead.kind} lead`, { description: lead.why });
       jumpTo(lead.id);
     } catch {
       setError("Couldn't save the lead. Please try again.");
@@ -66,7 +68,7 @@ export function AddLeadDialog() {
         <form onSubmit={save} className="grid gap-5" id="add-lead">
           <DialogHeader>
             <DialogTitle className="font-heading">Add a lead</DialogTitle>
-            <DialogDescription>Save a LinkedIn or X post to your inbox and draft a comment. Preview only · no live accounts or posting.</DialogDescription>
+            <DialogDescription>Save a LinkedIn or X post to your inbox and draft a comment. Demo mode · fictional data, simulated fetching and posting.</DialogDescription>
           </DialogHeader>
           <fieldset disabled={busy} className="grid min-w-0 gap-4">
             <Field id="f-url" label="Post link"><Input id="f-url" type="url" required maxLength={2000} placeholder="https://www.linkedin.com/posts/…" value={f.url} onChange={set("url")} /></Field>

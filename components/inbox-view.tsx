@@ -8,6 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { AddLeadDialog } from "@/components/add-lead-dialog";
+import { AgentConsole } from "@/components/agent-console";
 import { LeadDetail, LeadRow, STATUS_LABEL } from "@/components/lead-card";
 import { useLeads } from "@/components/leads-provider";
 import { StatStrip } from "@/components/stat-strip";
@@ -23,7 +24,7 @@ const subscribe = (cb: () => void) => { const m = window.matchMedia("(min-width:
 const useDesktop = () => useSyncExternalStore(subscribe, () => window.matchMedia("(min-width: 1024px)").matches, () => false);
 
 export function InboxView() {
-  const { leads, groups, now, focus } = useLeads();
+  const { leads, groups, now, focus, working } = useLeads();
   const [tab, setTab] = useState<Tab>("new");
   const [kind, setKind] = useState("all");
   const [platform, setPlatform] = useState("all");
@@ -99,18 +100,19 @@ export function InboxView() {
   const subline = ready.length ? `${ready.length} leads ready to review and comment on.` : "No leads are ready to comment.";
 
   return (
-    <div className="portal-page lg:h-[calc(100dvh-5rem)]">
+    <div className="portal-page">
       <header className="portal-header">
         <div className="portal-heading">
           <h1 className="portal-title">Inbox</h1>
           <p className="portal-description" aria-live="polite">{subline}</p>
-          <p className="portal-notice">Preview only · no live accounts or posting</p>
+          <p className="portal-notice">Demo mode · fictional data, simulated fetching and posting</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={exportCsv} disabled={!shown.length}><ArrowDownToLine strokeWidth={1.5} /> Export</Button>
           <AddLeadDialog />
         </div>
       </header>
+      <AgentConsole />
       <StatStrip compact items={[
         { label: "Ready to comment", value: ready.length, accent: ready.length ? "gold" : undefined, onClick: () => { clearFilters(); setTab("new"); }, active: tab === "new" && queue === "all" },
         { label: "Comments", value: comments, accent: comments ? "lilac" : undefined, onClick: () => chooseQueue("commented"), active: queue === "commented" },
@@ -123,7 +125,8 @@ export function InboxView() {
         </div>
       </div>
 
-      <div className="flex min-h-0 flex-1 gap-3 lg:grid lg:grid-cols-[minmax(280px,0.9fr)_minmax(0,1.4fr)]">
+      {/* The page scrolls; the list and detail keep a screen-tall panel each and scroll inside it. */}
+      <div className="flex min-h-0 gap-3 lg:grid lg:h-[calc(100dvh-3rem)] lg:min-h-[560px] lg:grid-cols-[minmax(280px,0.9fr)_minmax(0,1.4fr)]">
         <section aria-label="Leads" className="flex min-h-0 w-full flex-col overflow-hidden rounded-2xl bg-card">
           <div className="flex items-center gap-2 p-3">
             <label className="relative min-w-0 flex-1">
@@ -141,7 +144,7 @@ export function InboxView() {
             </div>
           )}
           <ul className="quiet-scroll grid min-h-0 flex-1 content-start gap-0.5 px-2 pt-1 pb-4 lg:overflow-y-auto" aria-label="Leads">
-            {shown.length ? shown.map((g, i) => <LeadRow key={g.lead.id} lead={g.lead} reposts={g.reposts} index={i} intro={intro} selected={active?.lead.id === g.lead.id} onSelect={() => setSelectedId(g.lead.id)} />)
+            {shown.length ? shown.map((g, i) => <LeadRow key={g.lead.id} lead={g.lead} reposts={g.reposts} index={i} intro={intro} selected={active?.lead.id === g.lead.id} posting={working === g.lead.id} onSelect={() => setSelectedId(g.lead.id)} />)
               : <li className="grid justify-items-center gap-3 px-6 py-14 text-center">
                   <p className="font-heading text-xl font-bold tracking-[-0.03em]">{filtered ? "No leads match" : "No leads in this stage"}</p>
                   <p className="max-w-64 text-[13px] leading-5 text-muted-foreground">{filtered ? "Try another filter, or clear them to see everything." : "Add a post to start a new opportunity."}</p>

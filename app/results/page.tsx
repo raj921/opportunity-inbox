@@ -82,7 +82,7 @@ export default function ResultsPage() {
         <div className="portal-heading">
           <h1 className="portal-title">Insights</h1>
           <p className="portal-description">Lead discovery, comment activity, and pipeline outcomes across LinkedIn and X.</p>
-          <p className="portal-notice">Preview only · no live accounts or posting</p>
+          <p className="portal-notice">Demo mode · fictional data, simulated fetching and posting</p>
         </div>
       </header>
 

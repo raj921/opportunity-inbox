@@ -36,7 +36,7 @@ export function parseDemoCsv(csv: string): Lead[] {
       why: r.Why,
       reply: r["Draft comment"],
       notes: r.Notes,
-      excerpt: "",
+      excerpt: r["Post text"] ?? "",
       query: null,
       source: "csv",
       postedDate: null,

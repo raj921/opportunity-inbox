@@ -3,6 +3,7 @@
 import { toast } from "sonner";
 import { useLeads } from "@/components/leads-provider";
 import { Button } from "@/components/ui/button";
+import { SCAN } from "@/lib/simulation";
 
 const SOURCES = [
   { id: "linkedin", name: "LinkedIn", connected: true, description: "Review business requests and prepare relevant comments for professional conversations." },
@@ -12,7 +13,7 @@ const SOURCES = [
 ] as const;
 
 export default function SourcesPage() {
-  const { leads } = useLeads();
+  const { leads, lastScan } = useLeads();
 
   return (
     <div className="portal-page">
@@ -20,7 +21,7 @@ export default function SourcesPage() {
         <div className="portal-heading">
           <h1 className="portal-title">Sources</h1>
           <p className="portal-description">Discover potential customers and prepare thoughtful comments on LinkedIn and X.</p>
-          <p id="connection-preview" className="portal-notice">Preview only · no live accounts or posting</p>
+          <p id="connection-preview" className="portal-notice">Demo mode · fictional data, simulated fetching and posting</p>
         </div>
       </header>
 
@@ -44,6 +45,7 @@ export default function SourcesPage() {
               </div>
               <h2 className="mt-6 font-heading text-2xl font-bold tracking-[-0.03em]">{name}</h2>
               <p className="mt-4 flex-1 text-sm leading-6 text-text-2">{description}</p>
+              {connected && <p className="mt-3 text-[13px] text-muted-foreground">{lastScan ? `Last scan ${new Date(lastScan).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })} · ${SCAN[id as "linkedin" | "x"]} posts` : "Not scanned yet. Run Fetch posts in the Inbox."}</p>}
               <dl className="mt-5 grid grid-cols-3 gap-4 border-t pt-5">
                 <div><dt className="text-[13px] text-muted-foreground">Leads in inbox</dt><dd className="mt-1.5 text-2xl font-medium tracking-[-0.03em] tabular">{platformLeads.length}</dd></div>
                 <div><dt className="text-[13px] text-muted-foreground">Ready to comment</dt><dd className="mt-1.5 text-2xl font-medium tracking-[-0.03em] tabular">{platformLeads.filter(lead => lead.status === "new").length}</dd></div>
